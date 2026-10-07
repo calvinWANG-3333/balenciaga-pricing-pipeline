@@ -18,7 +18,7 @@ Keep using the restaurant analogy from the DataQuest notes:
 | Plain (restaurant) | Term | Tool in this project |
 |---|---|---|
 | The building: cold room + kitchen | **Lakehouse** – storage and compute in one platform | **Databricks** |
-| Labelled shelving: *building → room → shelf* | **Unity Catalog**, three-level name `catalog.schema.table` | `workspace.raw.crawl_files` |
+| Labelled shelving: *building → room → shelf* | **Unity Catalog**, three-level name `catalog.schema.table` | `workspace.raw.crawl_lines` |
 | The loading dock where crates are dropped before unpacking | **Volume** – a folder for raw files inside Unity Catalog | `/Volumes/workspace/raw/landing/` |
 | The stove: off when idle, you pay while it burns | **SQL warehouse** – compute that runs SQL; *serverless* = starts in seconds | "Serverless Starter Warehouse" |
 | The recipe book + the chef's workstation | **dbt project** + **Studio IDE** (browser editor) | dbt platform |
@@ -135,11 +135,11 @@ inactive accounts can be deleted; non-commercial use only. Our ~240k rows are ti
    |---|---|
    | Auth method | Token |
    | Token | the PAT from step 0.3.6 |
-   | Schema | `dbt_cwang` |
+   | Schema | `dbt_rwang` |
 
    Click **Test connection** → it must succeed.
 
-   **Term – the development schema.** Every developer builds into their own schema (`dbt_cwang`), so your
+   **Term – the development schema.** Every developer builds into their own schema (`dbt_rwang`), so your
    half-finished models never overwrite anyone else's – the exact disease this project cures, applied to
    developers. Production gets its own schemas later (Phase 6).
 
@@ -165,7 +165,7 @@ dbt debug       # checks the connection - every line should say OK
 dbt run         # builds the two example models
 ```
 
-5. Back in Databricks → **Catalog** → `workspace` → you should now see a schema **`dbt_cwang`** with
+5. Back in Databricks → **Catalog** → `workspace` → you should now see a schema **`dbt_rwang`** with
    `my_first_dbt_model` (a table) and `my_second_dbt_model` (a view).
 6. In Studio: **Commit and sync** → message `chore(dbt): initialize project` → **Create pull request** →
    on GitHub click **Merge pull request** → back on your Mac run `git pull` so your local copy has `dbt/`.
@@ -173,7 +173,7 @@ dbt run         # builds the two example models
 **Checkpoint – Phase 0 is done when:**
 - [ ] the GitHub repo exists (private) and `main` contains `dbt/dbt_project.yml`
 - [ ] `dbt debug` is all green
-- [ ] `workspace.dbt_cwang.my_second_dbt_model` exists in Databricks
+- [ ] `workspace.dbt_rwang.my_second_dbt_model` exists in Databricks
 - [ ] `workspace.raw.landing` volume exists
 
 ---
