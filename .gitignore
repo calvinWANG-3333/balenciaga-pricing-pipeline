@@ -1,0 +1,32 @@
+# ---- generated data (reproducible with: python -m generator.generate) ----
+data/
+*.ndjson
+*.ndjson.gz
+
+# ---- secrets ----
+.env
+*.env
+profiles.yml
+
+# ---- dbt artifacts ----
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/dbt_internal_packages/
+dbt/.user.yml
+
+# ---- python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ---- BI build output (Evidence) ----
+bi/.evidence/
+bi/build/
+bi/node_modules/
+
+# ---- OS / editor ----
+.DS_Store
+.vscode/
+.idea/
