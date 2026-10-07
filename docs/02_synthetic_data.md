@@ -116,7 +116,7 @@ trusted / loaded twice.
 | A09_minor_units_leak | price format | original price written ×100 | quarantine | sample (S1 cousin) | 191 |
 | A10_numeric_type_drift | price format | `original_price` is a JSON number, not a string | fix | sample (LV feed) | 394 |
 | A11_dot_thousands_ambiguous | price format | `"2.490"` – 2,490 or 2.49? | fix (by currency rule) | work | 107 |
-| B01_currency_code_notation | currency | `"usd"`, `"$"` | fix | work | 194 |
+| B01_currency_code_notation | currency | `"usd"`, `"$"` | fix | work | 183 |
 | B02_geo_redirect_currency | currency | USA rows priced in EUR (crawler hit the site from an EU IP) | quarantine | work | 60 |
 | C01_html_entity_in_name | text | `&amp;`, `&nbsp;`, `&#39;` | fix | sample (LV feed) | 572 |
 | C02_whitespace_noise | text | leading / trailing / double space, NBSP, newline | fix | sample | 975 |
@@ -125,7 +125,7 @@ trusted / loaded twice.
 | C05_case_drift | text | `LE CITY BAG MEDIUM` | fix | sample (mixed casing) | 379 |
 | D01_exact_duplicate_row | identity | same line twice | fix (dedup) | sample (KRN feed) | 605 |
 | D02_conflicting_duplicate | identity | same objectID, different price + URL variant | quarantine | sample (KRN feed) | 114 |
-| D03_sku_format_variant | identity | lower-case / spaced / hyphenated SKU – objectID changes too | fix | sample (Cartier `CR` prefix) | 388 |
+| D03_sku_format_variant | identity | lower-case / spaced / hyphenated SKU – objectID changes too | fix | sample (Cartier `CR` prefix) | 387 |
 | D04_missing_sku | identity | `skus: []` | fix (from objectID) | work | 97 |
 | E01_missing_price_value | schema | `price.price` key absent | fix | sample (4,148 KRN rows) | 570 |
 | E02_null_url | schema | `url: null` | warn | work | 97 |
@@ -142,7 +142,12 @@ trusted / loaded twice.
 | G03_http_error_row | plausibility | `status: 404`, `isValid: false` | quarantine | work | 200 |
 | G04_isvalid_contradiction | plausibility | `validationErrors` present but `isValid: true` | quarantine | sample (KRN feed) | 97 |
 
-Total: **11,878 row-level** defects (~5% of 238,707 rows) and **5 batch-level** defects across 15 files.
+Total: **11,866 row-level** defects (~5% of 238,707 rows) and **5 batch-level** defects across 15 files.
+
+> Note: an early version of the generator also recorded 12 "defects" that changed nothing (lower-casing an
+> all-digit SKU; the symbol of AED is "AED"). They are no longer written, and the dbt grading model ignores
+> any manifest entry whose dirty value equals its clean value, so an answer key loaded before the fix still
+> grades correctly. The crawl files themselves are byte-identical either way.
 
 **Why F02 matters most.** The stale file is *not* byte-identical to the original (the export touched
 `updatedAt`), so a naive "skip files we have already seen" check by file hash does not catch it. Only

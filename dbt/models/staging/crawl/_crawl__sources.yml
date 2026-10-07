@@ -1,0 +1,39 @@
+version: 2
+
+sources:
+  - name: crawl
+    description: >
+      Bronze layer filled by `ingestion/02_load_crawl_files.sql` (COPY INTO, idempotent by file path).
+      Every line of every delivered crawl file, exactly as delivered, append-only. dbt never writes here.
+    schema: raw
+    config:
+      loaded_at_field: loaded_at
+      freshness:
+        # crawls are delivered weekly: one missed delivery warns, two missed deliveries fail
+        warn_after: {count: 8, period: day}
+        error_after: {count: 15, period: day}
+    tables:
+      - name: crawl_lines
+        description: >
+          One row per NDJSON line per delivered file. `raw_line` is the untouched JSON text
+          (schema-on-read); the other columns are file metadata captured at load time.
+          Grain: (source_file_name, line) - there is no line number, and identical lines can occur.
+        columns:
+          - name: raw_line
+            description: One crawler record as raw JSON text.
+            data_tests:
+              - not_null
+          - name: source_file_name
+            description: Delivered file name, e.g. ALT_2026-08-31_1788173725123_balenciaga.ndjson.gz
+            data_tests:
+              - not_null
+          - name: source_file_path
+            description: Full volume path of the delivered file.
+          - name: source_file_size
+            description: Compressed file size in bytes.
+          - name: source_file_modified_at
+            description: Last-modified time of the file in the volume (= upload time).
+          - name: loaded_at
+            description: When COPY INTO loaded the file. Drives the freshness check.
+            data_tests:
+              - not_null

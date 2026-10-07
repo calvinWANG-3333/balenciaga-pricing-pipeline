@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: qa_raw__quarantined_lines
+    description: >
+      Grain: one row per quarantined crawl line. The isolation room: every line the pipeline refuses to
+      trust, with the rule(s) that quarantined it and the raw JSON as evidence. Marts never read these rows.
+    columns:
+      - name: crawl_line_id
+        data_tests:
+          - unique
+          - not_null
+      - name: quarantine_reasons
+        description: The quarantine-level rules that fired (a subset of all_issues).
+
+  - name: qa_raw__repaired_values
+    description: >
+      Grain: one row per (crawl line, repair rule). Audit trail of every automatic repair: rule, raw value,
+      repaired value.
+    columns:
+      - name: repair_rule
+        data_tests:
+          - not_null
+
+  - name: qa_raw__file_profile
+    description: >
+      Grain: one row per delivered file. Batch-level checks no single row can reveal: duplicate content
+      under a new name, stale content re-delivered under a new date, missing and partial markets.
+      file_status = block | warn | ok.
+    columns:
+      - name: source_file_name
+        data_tests:
+          - unique
+          - not_null
+      - name: file_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [ok, warn, block]
+
+  - name: qa_answer_key__recall
+    description: >
+      Grain: one row per planted defect code. Grades the QA layer against the generator's answer key:
+      recall (share of planted defects caught by the right rule) and whether our handling matches the
+      expected handling. Exists only because the data is synthetic.
+    columns:
+      - name: defect_code
+        data_tests:
+          - unique
+          - not_null
