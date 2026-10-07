@@ -33,7 +33,7 @@ table a *pure function* of that history plus a date, and let each delivery choos
 ```
           ┌──────────────────────────── Databricks (Unity Catalog: workspace.*) ──────────────────────────┐
  generator│  Volume                bronze               dbt: silver                  dbt: gold           │
-  (Python)│  /raw/landing/   →   raw.crawl_files    →   staging   →  intermediate  →  marts  ──┬─► agent  │
+  (Python)│  /raw/landing/   →   raw.crawl_lines    →   staging   →  intermediate  →  marts  ──┬─► agent  │
   NDJSON ─┼─► ALT_*.ndjson       (append-only,          1:1 with     joins, dedup,   micro_*   ├─► BI     │
           │                       one row per line,     source,      categorize,     macro_*   └─► QA     │
           │                       + file metadata)      clean only   as-of select    qa_*                 │
