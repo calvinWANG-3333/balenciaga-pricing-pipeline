@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: base_crawl__lines
+    description: >
+      Grain: one row per delivered crawl line (same row count as the source).
+      Gives every line a stable `crawl_line_id` and extracts every JSON field as text.
+      No cleaning, no typing decisions, no filtering.
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: source('crawl', 'crawl_lines')
+    columns:
+      - name: crawl_line_id
+        description: >
+          sha256(file name | raw line | ordinal among identical lines in the same file).
+          Stable across rebuilds because bronze is append-only.
+        data_tests:
+          - unique
+          - not_null
+      - name: file_crawl_date
+        description: Crawl date parsed from the file name (ALT_<date>_...). What the delivery CLAIMS to be.
+        data_tests:
+          - not_null
+
+  - name: stg_crawl__product_observations
+    description: >
+      Grain: one row per delivered crawl line - an "observation" is one product seen in one market
+      in one delivered file. Parses, repairs and flags; never filters. `dq_issues` lists every rule
+      that fired, `dq_status` is the most severe handling among them (pass < fixed < warn < quarantine).
+      Systemic source quirks are handled by design: `price.price` (minor units, mislabelled EUR) is
+      never used; localized labels are kept raw for the harmonization layer.
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('base_crawl__lines')
+    columns:
+      - name: crawl_line_id
+        data_tests:
+          - unique
+          - not_null
+      - name: object_id
+        description: Canonical id `Balenciaga_<market>_<normalized sku>`, rebuilt from the repaired SKU.
+        data_tests:
+          - not_null
+      - name: market
+        description: ISO-3 market; taken from `market`, recovered from `source` when missing.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ARE, AUS, CAN, CHN, FRA, GBR, HKG, JPN, KOR, MEX, MYS, SAU, SGP, THA, TWN, USA]
+      - name: price_local
+        description: >
+          Parsed shelf price in local currency. Built from `original_price` text only - separators
+          resolved per the currency's ISO minor units. Null when the text is not a price.
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status != 'quarantine'"
+      - name: currency_code
+        description: ISO currency; a bare symbol ("$") is resolved through the market.
+        data_tests:
+          - not_null
+      - name: crawled_at
+        description: Crawl timestamp; epoch seconds are detected and converted.
+        data_tests:
+          - not_null
+      - name: price_parse_issue
+        description: Which price-format rule fired (null = the price was already clean digits).
+      - name: dq_issues
+        description: Every data-quality rule that fired on this line (see `dq_reasons` in dbt_project.yml).
+      - name: dq_status
+        description: pass | fixed | warn | quarantine - the most severe handling among dq_issues.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [pass, fixed, warn, quarantine]

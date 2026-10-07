@@ -180,6 +180,8 @@ class DefectInjector:
     def _b01(self, row):
         cur = row["price"]["original_currency"]
         v = self.rng.choice([cur.lower(), config.CURRENCY_SYMBOL[cur].strip()])
+        if v == cur:                 # e.g. the "symbol" of AED is "AED": nothing would change
+            return None
         row["price"]["original_currency"] = v
         return "price.original_currency", cur, v
 
@@ -251,6 +253,8 @@ class DefectInjector:
             v = " " + sku + " "
         else:
             v = f"{sku[:6]}-{sku[6:11]}-{sku[11:]}"
+        if v == sku:                 # lower-casing an all-digit SKU changes nothing
+            return None
         row["skus"][0] = v
         row["objectID"] = f"{config.BRAND_SLUG}_{row['market']}_{v.strip()}"   # identity breaks too
         return "skus[0]", sku, v

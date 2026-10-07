@@ -1,0 +1,26 @@
+version: 2
+
+# Ground truth written by the synthetic data generator (loaded by ingestion/03_load_answer_key.sql).
+# Deliberately NO staging models: these tables are not pipeline input. They are only read by the
+# quality/answer_key models that grade how well the QA layer catches the planted defects.
+# In a real pipeline this source would not exist.
+
+sources:
+  - name: answer_key
+    description: Generator ground truth, used only to grade the QA layer.
+    schema: answer_key
+    tables:
+      - name: defect_manifest
+        description: >
+          One row per planted defect. Row-level defects carry file_name + line_number + object_id;
+          batch-level defects (F family) carry only file_name.
+        columns:
+          - name: defect_code
+            data_tests:
+              - not_null
+      - name: batch_manifest
+        description: One row per delivered file, with its crawl date, type, row count and sha256.
+      - name: product_master
+        description: The synthetic "shop" - ground-truth catalogue.
+      - name: price_changes
+        description: Every planted price change (individual moves and the September increase).

@@ -1,0 +1,60 @@
+version: 2
+
+# Unit tests check LOGIC with hand-written inputs, before any real data is involved.
+# Data tests (in _crawl__models.yml) check the DATA after the model is built.
+# These cases are the price-format table from docs/04_staging_and_raw_qa.md.
+
+unit_tests:
+  - name: test_price_parsing_separators_and_symbols
+    description: Thousands / decimal separators, symbols and non-ASCII digits resolve to one number.
+    model: stg_crawl__product_observations
+    given:
+      - input: ref('base_crawl__lines')
+        rows:
+          - {crawl_line_id: us_thousands,  market_raw: USA, original_price_raw: "1,250",       original_currency_raw: USD}
+          - {crawl_line_id: eu_decimal,    market_raw: GBR, original_price_raw: "1.250,00",    original_currency_raw: GBP}
+          - {crawl_line_id: fr_nnbsp,      market_raw: FRA, original_price_raw: "1 250,00",    original_currency_raw: EUR}
+          - {crawl_line_id: symbol_usd,    market_raw: USA, original_price_raw: "$1,250",      original_currency_raw: USD}
+          - {crawl_line_id: symbol_eur,    market_raw: FRA, original_price_raw: "1 250 €",     original_currency_raw: EUR}
+          - {crawl_line_id: yen_symbol,    market_raw: JPN, original_price_raw: "¥616,000",    original_currency_raw: JPY}
+          - {crawl_line_id: fullwidth,     market_raw: JPN, original_price_raw: "６１６０００",  original_currency_raw: JPY}
+          - {crawl_line_id: arabic_indic,  market_raw: ARE, original_price_raw: "٣٧٥٠",        original_currency_raw: AED}
+          - {crawl_line_id: trailing_dec,  market_raw: USA, original_price_raw: "1250.00",     original_currency_raw: USD}
+          - {crawl_line_id: dot_thousands, market_raw: USA, original_price_raw: "2.490",       original_currency_raw: USD}
+          - {crawl_line_id: plain,         market_raw: USA, original_price_raw: "2490",        original_currency_raw: USD}
+    expect:
+      rows:
+        - {crawl_line_id: us_thousands,  price_local: 1250,   price_parse_issue: price_us_thousands_separator}
+        - {crawl_line_id: eu_decimal,    price_local: 1250,   price_parse_issue: price_eu_decimal_format}
+        - {crawl_line_id: fr_nnbsp,      price_local: 1250,   price_parse_issue: price_eu_decimal_format}
+        - {crawl_line_id: symbol_usd,    price_local: 1250,   price_parse_issue: price_currency_symbol}
+        - {crawl_line_id: symbol_eur,    price_local: 1250,   price_parse_issue: price_currency_symbol}
+        - {crawl_line_id: yen_symbol,    price_local: 616000, price_parse_issue: price_currency_symbol}
+        - {crawl_line_id: fullwidth,     price_local: 616000, price_parse_issue: price_non_ascii_digits}
+        - {crawl_line_id: arabic_indic,  price_local: 3750,   price_parse_issue: price_non_ascii_digits}
+        - {crawl_line_id: trailing_dec,  price_local: 1250,   price_parse_issue: price_trailing_decimals}
+        - {crawl_line_id: dot_thousands, price_local: 2490,   price_parse_issue: price_dot_thousands_ambiguous}
+        - {crawl_line_id: plain,         price_local: 2490,   price_parse_issue: null}
+
+  - name: test_price_parsing_refuses_to_guess
+    description: Text that is not a single price is never turned into a number.
+    model: stg_crawl__product_observations
+    given:
+      - input: ref('base_crawl__lines')
+        rows:
+          - {crawl_line_id: on_request,  market_raw: USA, original_price_raw: "Price upon request",  original_currency_raw: USD}
+          - {crawl_line_id: sur_demande, market_raw: FRA, original_price_raw: "Sur demande",         original_currency_raw: EUR}
+          - {crawl_line_id: from_price,  market_raw: USA, original_price_raw: "From 1,250",          original_currency_raw: USD}
+          - {crawl_line_id: range,       market_raw: USA, original_price_raw: "1,200 - 1,500",       original_currency_raw: USD}
+          - {crawl_line_id: zero,        market_raw: USA, original_price_raw: "0",                   original_currency_raw: USD}
+          - {crawl_line_id: nines,       market_raw: USA, original_price_raw: "99999999",            original_currency_raw: USD}
+          - {crawl_line_id: kwd_dot,     market_raw: USA, original_price_raw: "1.250",               original_currency_raw: KWD}
+    expect:
+      rows:
+        - {crawl_line_id: on_request,  price_local: null,     price_parse_issue: price_on_request}
+        - {crawl_line_id: sur_demande, price_local: null,     price_parse_issue: price_on_request}
+        - {crawl_line_id: from_price,  price_local: null,     price_parse_issue: price_from_or_range}
+        - {crawl_line_id: range,       price_local: null,     price_parse_issue: price_from_or_range}
+        - {crawl_line_id: zero,        price_local: 0,        price_parse_issue: price_placeholder}
+        - {crawl_line_id: nines,       price_local: 99999999, price_parse_issue: price_placeholder}
+        - {crawl_line_id: kwd_dot,     price_local: null,     price_parse_issue: price_ambiguous_separator}

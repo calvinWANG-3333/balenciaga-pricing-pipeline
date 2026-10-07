@@ -1,15 +1,19 @@
-Welcome to your new dbt project!
+# dbt project – `balenciaga_pricing`
 
-### Using the starter project
+Runs on Databricks through the dbt platform (Studio IDE). Build log and design explanations: [`../docs/`](../docs/).
 
-Try running the following commands:
-- dbt run
-- dbt test
+```
+models/
+  staging/crawl/       base_crawl__lines -> stg_crawl__product_observations   (parse, repair, flag - never filter)
+  staging/answer_key/  test-only source: the synthetic generator's ground truth
+  quality/raw/         qa_raw__quarantined_lines, qa_raw__repaired_values, qa_raw__file_profile
+  quality/answer_key/  qa_answer_key__recall  (grades the QA layer against the answer key)
+tests/                 singular tests: row conservation, answer-key recall
+macros/                generate_schema_name, data-quality helpers driven by vars
+```
 
-
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [dbt community](https://getdbt.com/community) to learn from other analytics engineers
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+```bash
+dbt deps
+dbt build                 # models + data tests + unit tests
+dbt source freshness      # warns 8 days after the last bronze load
+```
