@@ -12,6 +12,10 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
+# before every dbt command: make sure the delivery gate's audit tables exist (see macros/ops_tables.sql)
+on-run-start:
+  - "{{ create_ops_tables() }}"
+
 clean-targets:
   - "target"
   - "dbt_packages"
@@ -116,6 +120,9 @@ models:
     quality:
       +materialized: table
       +schema: quality
+    published:
+      +materialized: view
+      +schema: published
 
 seeds:
   balenciaga_pricing:

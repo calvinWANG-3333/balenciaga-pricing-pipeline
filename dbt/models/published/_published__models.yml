@@ -1,0 +1,32 @@
+version: 2
+
+# The published layer: what BI and the metrics agent are allowed to read. Each view is a mart filtered to
+# deliveries the delivery gate has released (write-audit-publish). Views, so a release is visible at once.
+
+models:
+  - name: pub_released_deliveries
+    description: Grain - one row per released delivery (scope, as_of_date). The publish switch.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [scope, as_of_date]
+    columns:
+      - name: scope
+        data_tests:
+          - accepted_values:
+              arguments: {values: [micro, macro]}
+
+  - name: pub_micro__hero_prices_weekly
+    description: mart_micro__hero_prices_weekly, released Micro deliveries only.
+  - name: pub_macro__category_monthly
+    description: mart_macro__category_monthly, released Macro deliveries only.
+  - name: pub_macro__category_monthly_global
+    description: mart_macro__category_monthly_global, months whose Macro delivery is released.
+  - name: pub_fct_catalogue_as_of
+    description: fct_catalogue_as_of, dates of released deliveries only.
+  - name: pub_fct_price_changes
+    description: fct_price_changes, up to the latest released delivery.
+  - name: pub_dim_product
+    description: dim_product, published as is.
+  - name: pub_dim_market
+    description: dim_market, published as is.

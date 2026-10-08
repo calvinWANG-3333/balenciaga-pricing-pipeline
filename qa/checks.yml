@@ -1,0 +1,384 @@
+# ==================================================================================================
+# Delivery gate - check catalogue (checks-as-code)
+# ==================================================================================================
+# Every delivery (a Micro Tuesday, a Macro month-end) is audited against these checks BEFORE it is
+# released to BI. A check is a small SQL query that returns one measured value per delivery and
+# subject, plus rules saying when that value is a warning or a failure.
+#
+# Organised by data-quality dimension so the catalogue is MECE: each dimension answers one question,
+# and anything dbt tests already guarantee at build time (uniqueness, not-null, contracts, row
+# conservation) is deliberately NOT repeated here.
+#
+#   timeliness     is the data recent enough for this delivery?
+#   completeness   is everything that should be there, there?
+#   validity       are the published numbers within believable bounds?
+#   plausibility   compared with its own history, does this delivery behave like a real one?
+#   consistency    do related tables tell the same story?
+#
+# SQL contract
+#   Each query returns the columns: scope, as_of_date, subject, observed
+#   - one row per delivery (and per subject: a market, a category, or 'all')
+#   - for EVERY delivery of the scope, not just the one being audited: the gate needs the history
+#     for the anomaly rules, and one query per check keeps the run cheap.
+#   Placeholders filled by the gate:
+#     {marts} {intermediate}   fully qualified schemas of the target environment
+#   CTEs available to every query (built by the gate):
+#     deliveries   scope, as_of_date, prev_date, prev2_date       (the delivery calendar)
+#     catalogue    as_of_date, market, object_id, served_crawl_date, price_local
+#                  (the point-in-time catalogue of the dataset being audited)
+#     scoped       catalogue rows of each delivery, restricted to the markets of its scope,
+#                  with prev_date and prev2_date attached
+#
+# Rules
+#   warn_above / warn_below / fail_above / fail_below   fixed thresholds
+#   anomaly: {window, min_history, z, min_value}        warn when the value is far above its own
+#                                                       recent history (mean + z * stdev)
+#   Rules can be given once, or per scope (micro: ..., macro: ...).
+#   severity: block  -> a failure stops the release
+#   severity: warn   -> never stops a release; the delivery goes out flagged WARN
+# ==================================================================================================
+
+version: 1
+
+# --------------------------------------------------------------------------------------------------
+# What can be audited. "marts" is what clients receive. "legacy_replay" is the replay of the old
+# shared-catalogue design (Phase 3): auditing it shows what the gate would have done in production.
+# --------------------------------------------------------------------------------------------------
+datasets:
+  marts:
+    publishable: true
+    deliveries:
+      micro: select distinct delivery_date as as_of_date from {marts}.mart_micro__hero_prices_weekly
+      macro: select distinct as_of_date from {marts}.mart_macro__category_monthly
+    catalogue: |
+      select as_of_date, market, object_id, presence_crawl_date as served_crawl_date, price_local
+      from {marts}.fct_catalogue_as_of
+
+  legacy_replay:
+    publishable: false
+    deliveries:
+      micro: select distinct delivery_date as as_of_date from {marts}.mart_micro__hero_prices_weekly
+      macro: select distinct as_of_date from {marts}.mart_macro__category_monthly
+    catalogue: |
+      select as_of_date, market, object_id, legacy_crawl_date as served_crawl_date, price_local
+      from {intermediate}.int_legacy__catalogue_replayed
+
+# --------------------------------------------------------------------------------------------------
+checks:
+
+  # ======================================================================= catalogue-level checks
+  # Run on any dataset: they only need the point-in-time catalogue of each delivery.
+
+  - id: served_crawl_age_days
+    dimension: timeliness
+    severity: block
+    scopes: [micro, macro]
+    datasets: [marts, legacy_replay]
+    description: >
+      Age, in days, of the crawl each market is served from on the delivery date. A weekly market
+      served from a crawl older than a week means this week's crawl was missing or rejected.
+    rules:
+      micro: {warn_above: 7, fail_above: 14}
+      macro: {warn_above: 10, fail_above: 35}
+    sql: |
+      select scope, as_of_date, market as subject,
+             max(datediff(as_of_date, served_crawl_date)) as observed
+      from scoped
+      group by scope, as_of_date, market
+
+  - id: market_coverage
+    dimension: completeness
+    severity: block
+    scopes: [micro, macro]
+    datasets: [marts, legacy_replay]
+    description: >
+      Share of the markets in scope (8 weekly markets for Micro, all 16 for Macro) that have at least
+      one product in the delivery. A market disappearing entirely is never a real business event.
+    rules: {fail_below: 1.0}
+    sql: |
+      select d.scope, d.as_of_date, 'all' as subject,
+             count(distinct s.market) / max(e.n_expected) as observed
+      from deliveries d
+      cross join (
+          select 'micro' as scope, count(*) as n_expected from {marts}.dim_market where is_in_micro_scope
+          union all
+          select 'macro' as scope, count(*) as n_expected from {marts}.dim_market
+      ) e
+      left join scoped s
+          on s.scope = d.scope and s.as_of_date = d.as_of_date
+      where e.scope = d.scope
+      group by d.scope, d.as_of_date
+
+  - id: product_count_change
+    dimension: completeness
+    severity: block
+    scopes: [micro, macro]
+    datasets: [marts, legacy_replay]
+    description: >
+      Change in the number of products listed per market vs the previous delivery. A brand's
+      assortment moves by a few percent a month; a drop of a fifth is a partial crawl.
+    rules: {warn_below: -0.05, fail_below: -0.20, warn_above: 0.20}
+    sql: |
+      with counts as (
+          select scope, as_of_date, prev_date, market, count(*) as n_products
+          from scoped
+          group by scope, as_of_date, prev_date, market
+      )
+      select c.scope, c.as_of_date, c.market as subject,
+             c.n_products / p.n_products - 1 as observed
+      from counts c
+      left join counts p
+          on p.scope = c.scope and p.as_of_date = c.prev_date and p.market = c.market
+
+  - id: price_reversion_share
+    dimension: plausibility
+    severity: block
+    scopes: [micro, macro]
+    datasets: [marts, legacy_replay]
+    description: >
+      Share of products whose price changed since the previous delivery AND went back exactly to the
+      price of the delivery before that (A -> B -> A). Real prices almost never do this in a week; an
+      old crawl served again does it to every product that changed. This is the signature of the
+      production incident.
+    rules: {warn_above: 0.01, fail_above: 0.05}
+    sql: |
+      with priced as (
+          select scope, as_of_date, prev_date, prev2_date, market, object_id, price_local
+          from scoped
+          where price_local is not null
+      )
+      select c.scope, c.as_of_date, c.market as subject,
+             avg(case when c.price_local != p1.price_local and c.price_local = p2.price_local
+                      then 1.0 else 0.0 end) as observed
+      from priced c
+      inner join priced p1
+          on p1.scope = c.scope and p1.as_of_date = c.prev_date and p1.object_id = c.object_id
+      inner join priced p2
+          on p2.scope = c.scope and p2.as_of_date = c.prev2_date and p2.object_id = c.object_id
+      group by c.scope, c.as_of_date, c.market
+
+  - id: price_decrease_share
+    dimension: plausibility
+    severity: block
+    scopes: [micro, macro]
+    datasets: [marts, legacy_replay]
+    description: >
+      Share of products priced at both deliveries whose price went down. Luxury houses raise prices;
+      a broad decrease is far more likely to be a data error (old crawl, wrong currency) than a policy.
+    rules: {warn_above: 0.02, fail_above: 0.10}
+    sql: |
+      with priced as (
+          select scope, as_of_date, prev_date, market, object_id, price_local
+          from scoped
+          where price_local is not null
+      )
+      select c.scope, c.as_of_date, c.market as subject,
+             avg(case when c.price_local < p.price_local then 1.0 else 0.0 end) as observed
+      from priced c
+      inner join priced p
+          on p.scope = c.scope and p.as_of_date = c.prev_date and p.object_id = c.object_id
+      group by c.scope, c.as_of_date, c.market
+
+  - id: price_change_share_anomaly
+    dimension: plausibility
+    severity: warn
+    scopes: [micro, macro]
+    datasets: [marts, legacy_replay]
+    description: >
+      Share of products (all markets together) whose price changed since the previous delivery,
+      compared with the recent history of the same share. Not an error by itself - a real price
+      campaign looks exactly like this - so it only warns, for a human to confirm.
+    rules:
+      anomaly: {window: 6, min_history: 3, z: 4, min_value: 0.02}
+    sql: |
+      with priced as (
+          select scope, as_of_date, prev_date, object_id, price_local
+          from scoped
+          where price_local is not null
+      )
+      select c.scope, c.as_of_date, 'all' as subject,
+             avg(case when c.price_local != p.price_local then 1.0 else 0.0 end) as observed
+      from priced c
+      inner join priced p
+          on p.scope = c.scope and p.as_of_date = c.prev_date and p.object_id = c.object_id
+      group by c.scope, c.as_of_date
+
+  # ======================================================================== Micro deliverable
+  # What the client actually receives: 8 hero products x 8 weekly markets every Tuesday.
+
+  - id: hero_grid_complete
+    dimension: completeness
+    severity: block
+    scopes: [micro]
+    datasets: [marts]
+    description: Rows delivered / (hero products x weekly markets). The grid must be whole.
+    rules: {fail_below: 1.0}
+    sql: |
+      select 'micro' as scope, m.delivery_date as as_of_date, 'all' as subject,
+             count(*) / max(g.n_cells) as observed
+      from {marts}.mart_micro__hero_prices_weekly m
+      cross join (
+          select count(distinct pointer_id)
+                 * (select count(*) from {marts}.dim_market where is_in_micro_scope) as n_cells
+          from {marts}.mart_micro__hero_prices_weekly
+      ) g
+      group by m.delivery_date
+
+  - id: hero_price_coverage
+    dimension: completeness
+    severity: block
+    scopes: [micro]
+    datasets: [marts]
+    description: Share of hero x market cells that carry a price.
+    rules: {warn_below: 0.98, fail_below: 0.90}
+    sql: |
+      select 'micro' as scope, delivery_date as as_of_date, 'all' as subject,
+             avg(case when price_local is not null then 1.0 else 0.0 end) as observed
+      from {marts}.mart_micro__hero_prices_weekly
+      group by delivery_date
+
+  - id: hero_stale_share
+    dimension: timeliness
+    severity: block
+    scopes: [micro]
+    datasets: [marts]
+    description: Share of hero cells built from a crawl older than a week (the client sees last week's data).
+    rules: {warn_above: 0.0, fail_above: 0.5}
+    sql: |
+      select 'micro' as scope, delivery_date as as_of_date, 'all' as subject,
+             avg(case when is_stale_crawl then 1.0 else 0.0 end) as observed
+      from {marts}.mart_micro__hero_prices_weekly
+      group by delivery_date
+
+  - id: hero_carried_forward
+    dimension: validity
+    severity: warn
+    scopes: [micro]
+    datasets: [marts]
+    description: >
+      Hero cells showing an older price because this week's reading was rejected. Correct behaviour,
+      but the client should be told.
+    rules: {warn_above: 0}
+    sql: |
+      select 'micro' as scope, delivery_date as as_of_date, 'all' as subject,
+             sum(case when is_price_carried_forward then 1 else 0 end) as observed
+      from {marts}.mart_micro__hero_prices_weekly
+      group by delivery_date
+
+  - id: hero_large_moves
+    dimension: plausibility
+    severity: warn
+    scopes: [micro]
+    datasets: [marts]
+    description: Hero cells whose price moved more than 10% vs the previous delivery - worth a second look before a client asks.
+    rules: {warn_above: 0}
+    sql: |
+      select 'micro' as scope, delivery_date as as_of_date, 'all' as subject,
+             sum(case when abs(change_vs_previous_pct) > 0.10 then 1 else 0 end) as observed
+      from {marts}.mart_micro__hero_prices_weekly
+      group by delivery_date
+
+  # ======================================================================== Macro deliverable
+  # Monthly category metrics per market, and the global headline.
+
+  - id: macro_grid_complete
+    dimension: completeness
+    severity: block
+    scopes: [macro]
+    datasets: [marts]
+    description: Rows delivered / (markets x macro categories).
+    rules: {fail_below: 1.0}
+    sql: |
+      select 'macro' as scope, m.as_of_date, 'all' as subject,
+             count(*) / max(g.n_cells) as observed
+      from {marts}.mart_macro__category_monthly m
+      cross join (
+          select (select count(*) from {marts}.dim_market)
+                 * count(distinct macro_category) as n_cells
+          from {marts}.mart_macro__category_monthly
+      ) g
+      group by m.as_of_date
+
+  - id: lfl_match_rate
+    dimension: completeness
+    severity: block
+    scopes: [macro]
+    datasets: [marts]
+    description: >
+      Worst share, across markets and categories, of products that could be compared like-for-like
+      with the previous month. A low rate means the comparison rests on few products (or SKUs changed).
+    rules: {warn_below: 0.8, fail_below: 0.5}
+    sql: |
+      select 'macro' as scope, as_of_date, 'all' as subject,
+             min(case when lfl_mean_change is not null
+                      then lfl_n_products / n_products end) as observed
+      from {marts}.mart_macro__category_monthly
+      group by as_of_date
+
+  - id: lfl_change_bounds
+    dimension: validity
+    severity: block
+    scopes: [macro]
+    datasets: [marts]
+    description: >
+      Largest like-for-like monthly change in any market, per category. Luxury price campaigns move
+      prices by single digits; a 30% month is a data error until proven otherwise.
+    rules: {warn_above: 0.10, fail_above: 0.30}
+    sql: |
+      select 'macro' as scope, as_of_date, macro_category as subject,
+             max(abs(lfl_mean_change)) as observed
+      from {marts}.mart_macro__category_monthly
+      group by as_of_date, macro_category
+
+  - id: median_price_drift
+    dimension: plausibility
+    severity: warn
+    scopes: [macro]
+    datasets: [marts]
+    description: >
+      Largest change in a market's median price vs the previous month, per category. Unlike LFL it is
+      sensitive to assortment changes - which is exactly what it is here to reveal.
+    rules: {warn_above: 0.15}
+    sql: |
+      select 'macro' as scope, c.as_of_date, c.macro_category as subject,
+             max(abs(c.median_price / p.median_price - 1)) as observed
+      from {marts}.mart_macro__category_monthly c
+      left join {marts}.mart_macro__category_monthly p
+          on  p.report_month = add_months(c.report_month, -1)
+          and p.market = c.market
+          and p.macro_category = c.macro_category
+      group by c.as_of_date, c.macro_category
+
+  - id: cross_market_dispersion
+    dimension: consistency
+    severity: warn
+    scopes: [macro]
+    datasets: [marts]
+    description: >
+      Spread between the highest and the lowest market LFL change, per category. Houses usually move
+      prices in all markets together; one market far from the others deserves a look (FX, a local
+      campaign, or a data problem in that market).
+    rules: {warn_above: 0.10}
+    sql: |
+      select 'macro' as scope, as_of_date, macro_category as subject,
+             max(lfl_mean_change) - min(lfl_mean_change) as observed
+      from {marts}.mart_macro__category_monthly
+      group by as_of_date, macro_category
+
+  - id: global_reconciles_with_markets
+    dimension: consistency
+    severity: block
+    scopes: [macro]
+    datasets: [marts]
+    description: >
+      The global headline (market-weighted LFL) must equal the average of the per-market values it is
+      built from. Two tables, one number: if they disagree, one of them is wrong.
+    rules: {fail_above: 0.0001}
+    sql: |
+      select 'macro' as scope, m.as_of_date, m.macro_category as subject,
+             abs(max(g.market_weighted_lfl_change) - round(avg(m.lfl_mean_change), 4)) as observed
+      from {marts}.mart_macro__category_monthly m
+      inner join {marts}.mart_macro__category_monthly_global g
+          on g.report_month = m.report_month and g.macro_category = m.macro_category
+      where m.lfl_mean_change is not null
+      group by m.as_of_date, m.macro_category

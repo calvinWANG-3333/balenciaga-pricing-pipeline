@@ -1,6 +1,7 @@
 version: 2
 
-# Exposures declare who CONSUMES the marts. They appear in the lineage graph as the final nodes, so a
+# Exposures declare who CONSUMES the data. Consumers read the published layer (released deliveries only,
+# see models/published). They appear in the lineage graph as the final nodes, so a
 # change to an upstream model shows which dashboards and tools it can break (`dbt ls -s +exposure:...`).
 
 exposures:
@@ -14,9 +15,9 @@ exposures:
       the previous delivery and the stale / carried-forward / not-found flags. Evidence.dev page.
     owner: {name: Calvin Wang}
     depends_on:
-      - ref('mart_micro__hero_prices_weekly')
-      - ref('dim_product')
-      - ref('dim_market')
+      - ref('pub_micro__hero_prices_weekly')
+      - ref('pub_dim_product')
+      - ref('pub_dim_market')
 
   - name: macro_category_monitor
     label: Macro - Category monitor
@@ -27,9 +28,9 @@ exposures:
       market, plus the global market-weighted headline. Evidence.dev page.
     owner: {name: Calvin Wang}
     depends_on:
-      - ref('mart_macro__category_monthly')
-      - ref('mart_macro__category_monthly_global')
-      - ref('dim_market')
+      - ref('pub_macro__category_monthly')
+      - ref('pub_macro__category_monthly_global')
+      - ref('pub_dim_market')
 
   - name: incident_replay_report
     label: Incident replay - legacy vs point-in-time
@@ -41,20 +42,32 @@ exposures:
     owner: {name: Calvin Wang}
     depends_on:
       - ref('qa_incident__legacy_vs_point_in_time')
-      - ref('fct_catalogue_as_of')
+      - ref('pub_fct_catalogue_as_of')
+      - ref('mart_data_health__deliveries')
+
+  - name: data_health_page
+    label: Data health - delivery gate verdicts
+    type: dashboard
+    maturity: medium
+    description: >
+      Every delivery's gate verdict (PASS / WARN / BLOCK), the checks that did not pass, and whether it is
+      published. Also shows the same gate run on the replay of the old design. Evidence.dev page.
+    owner: {name: Calvin Wang}
+    depends_on:
+      - ref('mart_data_health__deliveries')
+      - ref('pub_released_deliveries')
 
   - name: metrics_agent
     label: Metrics Q&A agent
     type: application
     maturity: low
     description: >
-      Natural-language Q&A over governed metrics (Phase 5). Reads only the marts, through a fixed set of
-      reviewed SQL templates.
+      Natural-language Q&A over governed metrics (Phase 5). Reads only the published layer, through the
+      metrics defined in the dbt semantic layer.
     owner: {name: Calvin Wang}
     depends_on:
-      - ref('fct_price_observations')
-      - ref('fct_price_changes')
-      - ref('fct_catalogue_as_of')
-      - ref('mart_micro__hero_prices_weekly')
-      - ref('mart_macro__category_monthly')
-      - ref('mart_macro__category_monthly_global')
+      - ref('pub_fct_price_changes')
+      - ref('pub_fct_catalogue_as_of')
+      - ref('pub_micro__hero_prices_weekly')
+      - ref('pub_macro__category_monthly')
+      - ref('pub_macro__category_monthly_global')

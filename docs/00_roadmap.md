@@ -65,7 +65,8 @@ table a *pure function* of that history plus a date, and let each delivery choos
 | 2 | **Sources + staging + raw QA** | `_sources.yml`, freshness, naming, parsing, quarantine | every planted A–E defect is fixed or quarantined |
 | 3 | **Intermediate + snapshots** | dedup, seeds, categorization rules, as-of selection, SCD2 | `int_catalogue__micro_asof` and `__macro_asof` from one history |
 | 4 | **Marts + tests** | grain, incremental merge, contracts, unit tests, the killer test | same SKU + same as-of date ⇒ same price in Micro and Macro |
-| 5 | **QA tool port + metrics agent** | turning a Python QA script into tested models; governed LLM querying | the old "evolution tab" is a dbt model; agent answers only governed metrics |
+| 5a | **Delivery gate** (write-audit-publish) | release-time QA in Python against the warehouse, checks-as-code, published layer | BI reads only released deliveries; the gate blocks the replayed incident |
+| 5b | **Semantic layer + metrics agent** | dbt semantic models, governed LLM querying, AI triage of gate results | agent answers only governed metrics; triage note for every WARN/BLOCK |
 | 6 | **BI + CI/CD + portfolio site** | Evidence.dev, GitHub Actions, GitHub Pages, writing the story | public URL with architecture, defects, tests, dashboards |
 
 ---
@@ -84,6 +85,7 @@ These are fixed now so every later chapter follows them.
 | intermediate model | `int_<entity>__<verb>` | `int_products__deduplicated` |
 | marts | `dim_<entity>`, `fct_<event>`, `mart_<audience>__<topic>` | `fct_price_observations`, `mart_macro__category_monthly` |
 | QA models | `qa_<layer>__<problem>` | `qa_raw__unparseable_prices` |
+| published views | `pub_<mart name>` | `pub_micro__hero_prices_weekly` |
 | seeds | noun, plural | `ly_category_rules`, `hero_products` |
 
 **Rules**

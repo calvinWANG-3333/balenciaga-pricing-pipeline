@@ -218,3 +218,19 @@ models:
       - {name: min_market_lfl_change, data_type: "decimal(10,4)"}
       - {name: max_market_lfl_change, data_type: "decimal(10,4)"}
       - {name: market_with_highest_change, data_type: string}
+
+  # ----------------------------------------------------------------------------------------- health
+  - name: mart_data_health__deliveries
+    description: >
+      Grain: one row per (dataset, scope, delivery date). Latest delivery-gate verdict on each delivery:
+      counts of pass / warn / fail checks, the checks that did not pass, the decision (PASS / WARN / BLOCK)
+      and whether it is published. dataset = legacy_replay rows are the gate run on the old design.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dataset, scope, as_of_date]
+    columns:
+      - name: gate_decision
+        data_tests:
+          - accepted_values:
+              arguments: {values: [PASS, WARN, BLOCK]}
