@@ -48,3 +48,20 @@ models:
         data_tests:
           - unique
           - not_null
+
+  - name: qa_int__price_scale_outliers
+    description: >
+      Grain: one row per observation excluded as a price-scale outlier: a valid-looking price a whole power
+      of ten away from the same product's usual price (minor units leaked, a zero added or dropped).
+    columns:
+      - name: crawl_line_id
+        data_tests: [unique, not_null]
+
+  - name: qa_incident__legacy_vs_point_in_time
+    description: >
+      Grain: one row per (reporting date, market). The incident replayed: which crawl the old shared
+      catalogue would have served vs the point-in-time catalogue, and how many products and prices disagree.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [as_of_date, market]

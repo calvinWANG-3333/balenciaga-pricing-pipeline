@@ -25,7 +25,7 @@ with code_map as (
         ('A06_from_price',               'price_from_or_range',            2),
         ('A07_placeholder_price',        'price_placeholder',              2),
         ('A08_non_ascii_digits',         'price_non_ascii_digits',         2),
-        ('A09_minor_units_leak',         'price_scale_outlier',            3),   -- needs price history
+        ('A09_minor_units_leak',         'price_scale_outlier',            3),   -- needs price history (intermediate)
         ('A10_numeric_type_drift',       'price_numeric_type_drift',       2),
         ('A11_dot_thousands_ambiguous',  'price_dot_thousands_ambiguous',  2),
         ('B01_currency_code_notation',   'currency_code_notation',         2),
@@ -45,7 +45,7 @@ with code_map as (
         ('E04_epoch_seconds_timestamp',  'timestamp_epoch_seconds',        2),
         ('E05_boolean_as_string',        'is_valid_as_string',             2),
         ('E06_missing_market_field',     'market_recovered_from_source',   2),
-        ('G01_unit_scale_error',         'price_scale_outlier',            3),   -- needs price history
+        ('G01_unit_scale_error',         'price_scale_outlier',            3),   -- needs price history (intermediate)
         ('G02_non_product_page',         'non_product_page',               2),
         ('G03_http_error_row',           'http_error_or_invalid',          2),
         ('G04_isvalid_contradiction',    'is_valid_contradiction',         2),
@@ -88,11 +88,16 @@ manifest as (
 
 observations as (
 
+    -- staging rules + the history-based check of the intermediate layer, per delivered line
     select
-        regexp_replace(delivered_file_name, '\\.gz$', '')                as file_name,
-        object_id_raw,
-        dq_issues
-    from {{ ref('stg_crawl__product_observations') }}
+        regexp_replace(s.delivered_file_name, '\\.gz$', '')              as file_name,
+        s.object_id_raw,
+        case when c.is_price_scale_outlier
+             then array_union(s.dq_issues, array('price_scale_outlier'))
+             else s.dq_issues
+        end                                                              as dq_issues
+    from {{ ref('stg_crawl__product_observations') }} s
+    left join {{ ref('int_observations__classified') }} c using (crawl_line_id)
 
 ),
 

@@ -1,0 +1,27 @@
+rule_id,priority,match_field,pattern,ly_category_code,rationale
+R010,10,product_name,(^|[^a-z])(wallet|wallets|card holder|card case|coin|passport|phone holder|phone pouch|phone strap)([^a-z]|$),LG_SLG,"A wallet is a wallet whatever shelf the brand files it under (it often tags them leather_goods)"
+R011,11,product_name,(^|[^a-z])(charm|charms|keychain|keyring)([^a-z]|$),AC_OTHER,"A bag charm is an accessory, even when its name contains the word bag"
+R012,12,product_name,(^|[^a-z])(bag|bags|handbag|tote|backpack|beltpack|pochette|clutch|vanity|hobo|cabas|messenger|weekender|sling)([^a-z]|$),LG_BAGS,"Bags by name: the brand sub-tags sometimes file handbags under small leather goods"
+R015,15,product_name,(^|[^a-z])(parfum|perfume|extrait|hair mist|eau de)([^a-z]|$),BEAUTY,Fragrance names are unambiguous
+R020,20,product_name,(^|[^a-z])(sneaker|sneakers|trainer|trainers)([^a-z]|$),SH_SNEAKERS,"Sneakers by name: the brand sub-tags mix sneakers with boots and pumps"
+R025,25,product_name,(^|[^a-z])(sunglasses|eyewear)([^a-z]|$),AC_EYEWEAR,Eyewear by name
+R030,30,product_name,(^|[^a-z])(earrings?|rings?|necklace|bracelet|cuff|choker|chain earrings)([^a-z]|$),AC_JEWELRY,Jewelry by name (word boundaries keep keyring out)
+R035,35,product_name,(^|[^a-z])belt([^a-z]|$),AC_BELTS,Belts by name (a beltpack is a bag and does not match)
+R040,40,brand_super_micro_category,(wallets|cardholders|_slg$|small_leather_goods),LG_SLG,Brand sub-tags for small leather goods
+R041,41,brand_super_micro_category,(handbags|_bags$|shoulder_bags|tote_bags|crossbody_bags|backpacks|beltbags|clutches_and_pouches),LG_BAGS,"Brand sub-tags for bags; clutches and pouches are carried as bags"
+R042,42,brand_super_micro_category,sneakers,SH_SNEAKERS,Brand sub-tag for sneakers
+R043,43,brand_super_micro_category,(boots_and_booties|pumps|mules|sandals|formal_shoes|mules_and_loafers),SH_SHOES,Brand sub-tags for non-sneaker shoes
+R044,44,brand_super_micro_category,jewelry,AC_JEWELRY,Brand sub-tag for jewelry
+R045,45,brand_super_micro_category,belts,AC_BELTS,Brand sub-tag for belts
+R046,46,brand_super_micro_category,sunglasses,AC_EYEWEAR,Brand sub-tag for eyewear
+R047,47,brand_super_micro_category,(caps|hats_and_scarves),AC_HATS_SCARVES,Brand sub-tags for hats and scarves
+R048,48,brand_super_micro_category,(keyrings|objects|other_accessories),AC_OTHER,"Keyrings and objects are accessories even when the brand files them under SLG"
+R049,49,brand_super_micro_category,(knitwear|pants|t_shirts|coats_and_jackets|sweatshirts|dresses_and_skirts|tops_and_shirts),RTW,Brand sub-tags for ready-to-wear
+R050,50,brand_super_micro_category,fragrances,BEAUTY,Brand sub-tag for fragrance
+R090,90,brand_macro_category,(_bags|leather_goods),LG_BAGS,Fallback on the brand top-level tag
+R091,91,brand_macro_category,_slg,LG_SLG,Fallback on the brand top-level tag
+R092,92,brand_macro_category,_shoes,SH_SHOES,Fallback on the brand top-level tag
+R093,93,brand_macro_category,_eyewear,AC_EYEWEAR,Fallback on the brand top-level tag
+R094,94,brand_macro_category,_accessories,AC_OTHER,Fallback on the brand top-level tag
+R095,95,brand_macro_category,_rtw,RTW,Fallback on the brand top-level tag
+R096,96,brand_macro_category,_beauty,BEAUTY,Fallback on the brand top-level tag

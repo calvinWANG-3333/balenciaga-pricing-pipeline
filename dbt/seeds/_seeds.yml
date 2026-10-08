@@ -1,0 +1,65 @@
+version: 2
+
+# Seeds = small, human-maintained business configuration, version-controlled and reviewed in PRs.
+# They are NOT data delivered by a system (that would be a source).
+
+seeds:
+  - name: ly_category_tree
+    description: >
+      Harmonized product taxonomy, independent of how the brand files products on its website.
+      Grain: one row per category. macro_category is the level the Macro deliverable reports on
+      (empty = out of Macro scope).
+    config:
+      column_types:
+        display_order: int
+    columns:
+      - name: ly_category_code
+        data_tests:
+          - unique
+          - not_null
+
+  - name: ly_category_rules
+    description: >
+      Ordered rules mapping a product to a harmonized category. The lowest priority number that matches
+      wins. Name rules come first (a "wallet" is a wallet), then the brand's sub-tags, then its top-level
+      tag as a fallback. Grain: one row per rule.
+    config:
+      column_types:
+        priority: int
+    columns:
+      - name: rule_id
+        data_tests:
+          - unique
+          - not_null
+      - name: priority
+        data_tests:
+          - unique
+          - not_null
+      - name: match_field
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [product_name, sku, brand_super_micro_category, brand_macro_category]
+      - name: ly_category_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('ly_category_tree')
+                field: ly_category_code
+
+  - name: micro_pointers
+    description: >
+      The Micro watchlist ("pointers"): the hero SKUs a client tracks weekly across markets.
+      Grain: one row per tracked SKU.
+    columns:
+      - name: pointer_id
+        data_tests:
+          - unique
+          - not_null
+      - name: sku
+        data_tests:
+          - unique
+          - not_null
+
+# Seed hygiene: seeds are loaded through SQL INSERT statements, so keep them free of apostrophes and
+# backslashes (regex word boundaries are written as (^|[^a-z]) ... ([^a-z]|$) instead of \b).

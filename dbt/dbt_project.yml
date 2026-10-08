@@ -95,6 +95,8 @@ vars:
     non_product_page: quarantine
     http_error_or_invalid: quarantine
     is_valid_contradiction: quarantine
+    # emitted by the intermediate layer (needs price history), not by staging
+    price_scale_outlier: quarantine
 
 # --------------------------------------------------------------------------------------------------
 # Materialization + schema per layer (directory-based config). Override per model only with a

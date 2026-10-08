@@ -1,0 +1,123 @@
+version: 2
+
+models:
+  # ------------------------------------------------------------------------------------ deliveries
+  - name: int_deliveries__profiled
+    description: >
+      Grain: one row per delivered file. Decides whether a delivery can be trusted: duplicate content
+      under a new name and stale content re-delivered under a new date are blocked; missing or partial
+      markets are warnings. content_crawl_date = what the data says, file_crawl_date = what the name claims.
+    columns:
+      - name: source_file_name
+        data_tests: [unique, not_null]
+      - name: file_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [ok, warn, block]
+
+  - name: int_market_batches__assessed
+    description: >
+      Grain: one row per (delivered file, market). A market batch is eligible to represent a market's
+      catalogue only if its delivery is trusted and the market is complete in it.
+    columns:
+      - name: market_batch_id
+        data_tests: [unique, not_null]
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [source_file_name, market]
+
+  # ---------------------------------------------------------------------------------- observations
+  - name: int_observations__classified
+    description: >
+      Grain: one row per delivered crawl line (same row count as staging). Every line gets exactly one
+      fate: blocked_delivery | exact_duplicate | quarantined_in_staging | price_scale_outlier | accepted.
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('stg_crawl__product_observations')
+    columns:
+      - name: crawl_line_id
+        data_tests: [unique, not_null]
+      - name: fate
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [blocked_delivery, exact_duplicate, quarantined_in_staging, price_scale_outlier, accepted]
+
+  - name: int_observations__accepted
+    description: >
+      Grain: one row per (market batch, object). The trustworthy, append-only price history.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [market_batch_id, object_id]
+    columns:
+      - name: price_local
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+
+  # -------------------------------------------------------------------------------------- products
+  - name: int_products__categorized
+    description: >
+      Grain: one row per SKU. Descriptive attributes from the latest international observation, and the
+      harmonized LY category chosen by the ly_category_rules seed (lowest matching priority wins).
+    columns:
+      - name: sku
+        data_tests: [unique, not_null]
+      - name: ly_category_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('ly_category_tree')
+                field: ly_category_code
+
+  # ---------------------------------------------------------------------------------------- prices
+  - name: int_prices__historized
+    description: >
+      Grain: one row per (object, price period). SCD2 of shelf prices derived from the immutable history:
+      valid_from = first crawl at that price, valid_to = first crawl at the next price (null = current).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [object_id, valid_from]
+    columns:
+      - name: price_period_id
+        data_tests: [unique, not_null]
+
+  - name: int_as_of_dates
+    description: >
+      Grain: one row per reporting date. Micro = the day after each crawl, Macro = month-ends.
+      knowledge_cutoff = end of that day: only data delivered before it may be used.
+    columns:
+      - name: as_of_date
+        data_tests: [unique, not_null]
+
+  - name: int_catalogue__as_of
+    description: >
+      Grain: one row per (as-of date, object). The point-in-time catalogue: presence from the latest
+      eligible crawl of each market by crawl date, price from the latest accepted reading known at that
+      date. A pure function of the immutable history and the date - the fix for the shared-catalogue incident.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [as_of_date, object_id]
+    columns:
+      - name: catalogue_row_id
+        data_tests: [unique, not_null]
+
+  - name: int_legacy__catalogue_replayed
+    description: >
+      Grain: one row per (as-of date, object). Replay of the OLD design (the last-imported file wins,
+      no trust check), with identical row-level rules. Only for the incident analysis; never read by marts.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [as_of_date, object_id]

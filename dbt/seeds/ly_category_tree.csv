@@ -1,0 +1,13 @@
+ly_category_code,ly_category_name,level_1,level_2,macro_category,display_order
+LG_BAGS,Bags,Leather Goods,Bags,Bags,10
+LG_SLG,Small Leather Goods,Leather Goods,Small Leather Goods,Small Leather Goods,20
+SH_SNEAKERS,Sneakers,Shoes,Sneakers,Shoes,30
+SH_SHOES,Other Shoes,Shoes,Other Shoes,Shoes,40
+AC_JEWELRY,Jewelry,Accessories,Jewelry,Accessories,50
+AC_BELTS,Belts,Accessories,Belts,Accessories,60
+AC_EYEWEAR,Eyewear,Accessories,Eyewear,Accessories,70
+AC_HATS_SCARVES,Hats & Scarves,Accessories,Hats & Scarves,Accessories,80
+AC_OTHER,Other Accessories,Accessories,Other Accessories,Accessories,90
+RTW,Ready-to-Wear,Ready-to-Wear,Ready-to-Wear,,100
+BEAUTY,Fragrance & Beauty,Beauty,Fragrance & Beauty,,110
+UNCATEGORIZED,Uncategorized,Uncategorized,Uncategorized,,999
