@@ -24,6 +24,8 @@ venv/
 
 # ---- delivery gate reports (written on demand with --report) ----
 qa/reports/
+gate_report*.md
+triage_*.md
 
 # ---- BI build output (Evidence) ----
 bi/.evidence/
