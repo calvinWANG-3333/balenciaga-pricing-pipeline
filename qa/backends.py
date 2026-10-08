@@ -19,6 +19,48 @@ class Backend(Protocol):
     def close(self) -> None: ...
 
 
+def _use_system_trust_store() -> bool:
+    """Make Python trust the same certificates as the operating system (and the browser).
+
+    Python ships its own list of trusted certificate authorities and ignores the macOS Keychain. On a
+    network that re-signs HTTPS traffic (company or school network, VPN, antivirus), the browser works
+    - its Keychain trusts the re-signing authority - but Python fails with CERTIFICATE_VERIFY_FAILED.
+    `truststore` (from the pip maintainers) points Python at the system store. Verification stays ON.
+    """
+    try:
+        import truststore
+    except ImportError:
+        return False
+    truststore.inject_into_ssl()
+    return True
+
+
+def _preflight(host: str) -> None:
+    """Fail in seconds with a readable message, instead of after 15 minutes of connector retries."""
+    import socket
+    import ssl
+
+    try:
+        socket.getaddrinfo(host, 443)
+    except socket.gaierror as exc:
+        raise SystemExit(
+            f"Cannot resolve {host!r}: the computer cannot find this address.\n"
+            "  - check DATABRICKS_SERVER_HOSTNAME (just the host: no https://, no trailing /)\n"
+            "  - check your internet connection / VPN, then retry") from exc
+    try:
+        with socket.create_connection((host, 443), timeout=15) as sock:
+            with ssl.create_default_context().wrap_socket(sock, server_hostname=host):
+                pass
+    except ssl.SSLCertVerificationError as exc:
+        raise SystemExit(
+            f"TLS check failed for {host}: {exc.verify_message}.\n"
+            "Something between this computer and Databricks re-signs HTTPS traffic (school / company\n"
+            "network, VPN or proxy app, antivirus web shield). See docs/07_delivery_gate.md, section 4,\n"
+            "'CERTIFICATE_VERIFY_FAILED'. Never switch certificate verification off.") from exc
+    except OSError as exc:
+        raise SystemExit(f"Cannot open a connection to {host}:443 ({exc}). Check your network / VPN.") from exc
+
+
 class DatabricksBackend:
     def __init__(self) -> None:
         try:
@@ -31,10 +73,24 @@ class DatabricksBackend:
         if missing:
             raise SystemExit(f"Missing environment variable(s): {', '.join(missing)} (see docs/07_delivery_gate.md)")
 
+        # tolerate a pasted URL: keep only the host name
+        host = os.environ["DATABRICKS_SERVER_HOSTNAME"].strip().removeprefix("https://").rstrip("/")
+        _use_system_trust_store()
+        _preflight(host)
+
+        extra = {}
+        if os.environ.get("DATABRICKS_CA_BUNDLE"):          # last resort: an exported root certificate (PEM)
+            extra["_tls_trusted_ca_file"] = os.environ["DATABRICKS_CA_BUNDLE"]
+
         self._conn = dbsql.connect(
-            server_hostname=os.environ["DATABRICKS_SERVER_HOSTNAME"],
-            http_path=os.environ["DATABRICKS_HTTP_PATH"],
-            access_token=os.environ["DATABRICKS_TOKEN"],
+            server_hostname=host,
+            http_path=os.environ["DATABRICKS_HTTP_PATH"].strip(),
+            access_token=os.environ["DATABRICKS_TOKEN"].strip(),
+            # give up after 5 minutes instead of the default 15 (a sleeping warehouse wakes in < 2)
+            _retry_stop_after_attempts_duration=300,
+            # no usage telemetry to Databricks from this tool
+            enable_telemetry=False,
+            **extra,
         )
 
     def query(self, sql: str) -> list[dict[str, Any]]:

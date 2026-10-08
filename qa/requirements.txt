@@ -1,5 +1,7 @@
 # Delivery gate (qa/) - Python 3.10+
 databricks-sql-connector>=3.0,<5
 pyyaml>=6.0
+# use the operating system's certificate store (works behind networks that re-sign HTTPS)
+truststore>=0.9
 # development
 pytest>=8.0

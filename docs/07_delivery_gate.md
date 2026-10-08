@@ -351,6 +351,9 @@ git checkout main && git pull
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| `audit` seems to hang after "Connecting to databricks" | the serverless SQL warehouse is starting (it sleeps when idle) | wait 1-3 minutes; progress lines then appear for each check. Still stuck after 5 min: Ctrl+C and check the warehouse in Databricks → SQL Warehouses |
+| `Cannot resolve 'dbc-....cloud.databricks.com'` | DNS lookup failed: wrong host value, no internet, or a VPN switching | the host only (no `https://`); check the connection; `nslookup <host>` must return an address |
+| `CERTIFICATE_VERIFY_FAILED: self signed certificate in certificate chain` | something re-signs HTTPS between you and Databricks (school / company network, VPN or proxy app, antivirus web shield). The browser trusts it via the macOS Keychain; Python does not | 1) `pip install -r qa/requirements.txt` again - it installs `truststore`, which makes Python use the Keychain too. 2) Still failing: see who signed the certificate with `openssl s_client -connect <host>:443 -showcerts </dev/null 2>/dev/null \| grep -E "s:\|i:"`. 3) Try another network (phone hotspot) to confirm. **Never disable certificate verification.** |
 | `Missing environment variable(s)` | the exports were done in another terminal | export again in this one (they last for the session) |
 | `TABLE_OR_VIEW_NOT_FOUND ... dbt_rwang_ops` | dbt has not run since this branch | `dbt build` in Studio (the hook creates the tables) |
 | `pub_*` views are empty | nothing released yet | `python -m qa.gate audit` |
