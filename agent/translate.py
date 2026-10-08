@@ -172,59 +172,104 @@ class RuleTranslator:
                     if value not in intent.filters["change_direction"]:
                         intent.filters["change_direction"].append(value)
 
-        # group by: explicit words, then any dimension given several values, then the metric default
-        explicit = [d for d, pat in GROUP_PATTERNS.items() if d in dims and re.search(pat, text)]
-        multi = [d for d, vals in intent.filters.items() if len(vals) > 1 and d not in explicit]
-        intent.group_by = explicit + multi
-        intent.group_by_time = bool(re.search(TIME_GROUP, text))
-        if not intent.group_by and not intent.group_by_time:
-            intent.group_by = [d for d in metric.default_group_by
-                               if d in dims and len(intent.filters.get(d, [])) != 1]
-        for req in metric.requires:                       # currency metrics: one market at a time
-            if req not in intent.group_by and len(intent.filters.get(req, [])) != 1:
-                intent.group_by.append(req)
-                intent.notes.append(f"Prices are in local currency, so they are shown per {req}.")
-
+        # group by: explicit words, then any dimension given several values (added by the policy)
+        intent.group_by = [d for d, pat in GROUP_PATTERNS.items() if d in dims and re.search(pat, text)]
+        intent.group_by_time = wants_time_series(text)
         if re.search(ORDER_DESC, text):
             intent.order = "desc"
         elif re.search(ORDER_ASC, text):
             intent.order = "asc"
+        intent.time_start, intent.time_end, intent.time_label = parse_period(
+            text, self.vocab.periods.get(model.name, []))
+        return apply_policy(intent, self.cat, self.vocab)
 
-        # time
-        periods = self.vocab.periods.get(model.name, [])
-        start, end, label = parse_period(text, periods)
-        if start is None and metric.default_time == "latest" and periods and not intent.group_by_time:
-            start = end = periods[-1]
-            label = (f"latest month ({start:%B %Y})" if dims[model.time_dimension].granularity == "month"
-                     else f"latest delivery ({start.isoformat()})")
-        if start is not None and not intent.group_by_time:
-            in_range = [p for p in periods if start <= p <= end]
-            if len(in_range) == 1:
-                start = end = in_range[0]
-            elif len(in_range) > 1 and metric.point_in_time:
-                # a level (a price, a number of listed products): adding or averaging weeks means nothing
-                start = end = in_range[-1]
-                intent.notes.append(f"{metric.label} is a point-in-time value: using the latest delivery in "
-                                    f"{label}, {start.isoformat()}.")
-            elif len(in_range) > 1 and metric.unit == "percent":
-                # changes are per period: show each period rather than an average of changes
-                intent.group_by_time = True
-                intent.notes.append(f"{metric.label} is measured per period: showing each period of {label}.")
-        intent.time_start, intent.time_end = start, end
-        intent.time_label = label or "all published history"
-        return intent
+
+# --------------------------------------------------------------------------------------------- policy
+
+def wants_time_series(text: str) -> bool:
+    """'by month', 'over time', 'trend'... - NOT 'week on week', which describes the metric itself."""
+    return bool(re.search(TIME_GROUP, text))
+
+
+def apply_policy(intent: Intent, cat: Catalogue, vocab: Vocabulary) -> Intent:
+    """The agent's business rules, applied to EVERY intent whoever filled it (rules or Claude).
+
+    A translator only says what the question mentions: metric, values, maybe a period. How a level or a
+    change is shown (which delivery, per market or not, one period or each period) is decided here,
+    deterministically - so two translators that read the question the same way give the same answer.
+    """
+    metric = cat.metrics[intent.metric]
+    model = cat.model_of(metric)
+    dims = cat.dimensions_of(metric)
+    tdim = dims[model.time_dimension]
+
+    # the time dimension is the period, not a grouping column
+    intent.group_by = [d for d in dict.fromkeys(intent.group_by) if d != tdim.name]
+    # grouping by a dimension already pinned to one value adds a column, not an answer
+    intent.group_by = [d for d in intent.group_by if len(intent.filters.get(d, [])) != 1]
+    # a currency is an attribute of a market: "per currency" means per market
+    if "currency_code" in intent.group_by:
+        intent.group_by.remove("currency_code")
+        if "market" in dims and "market" not in intent.group_by and len(intent.filters.get("market", [])) != 1:
+            intent.group_by.append("market")
+    # several values of a dimension are compared side by side
+    intent.group_by += [d for d, vals in intent.filters.items()
+                        if len(vals) > 1 and d not in intent.group_by and d in dims]
+    if not intent.group_by and not intent.group_by_time:
+        intent.group_by = [d for d in metric.default_group_by
+                           if d in dims and len(intent.filters.get(d, [])) != 1]
+    for req in metric.requires:                           # currency metrics: one market at a time
+        if req not in intent.group_by and len(intent.filters.get(req, [])) != 1:
+            intent.group_by.append(req)
+            intent.notes.append(f"Prices are in local currency, so they are shown per {req}.")
+
+    # period
+    periods = vocab.periods.get(model.name, [])
+    start, end, label = intent.time_start, intent.time_end, intent.time_label
+    if start and not end:
+        end = start
+    if end and not start:
+        start = end
+    if start is None and metric.default_time == "latest" and periods and not intent.group_by_time:
+        start = end = periods[-1]
+        label = (f"latest month ({start:%B %Y})" if tdim.granularity == "month"
+                 else f"latest delivery ({start.isoformat()})")
+    if start is not None and not intent.group_by_time:
+        in_range = [p for p in periods if start <= p <= end]
+        if len(in_range) == 1:
+            start = end = in_range[0]
+        elif len(in_range) > 1 and metric.point_in_time:
+            # a level (a price, a number of listed products): adding or averaging weeks means nothing
+            start = end = in_range[-1]
+            intent.notes.append(f"{metric.label} is a point-in-time value: using the latest delivery in "
+                                f"{label or 'the period'}, {start.isoformat()}.")
+        elif len(in_range) > 1 and metric.unit == "percent":
+            # changes are per period: show each period rather than an average of changes
+            intent.group_by_time = True
+            intent.notes.append(f"{metric.label} is measured per period: showing each period of "
+                                f"{label or 'the range'}.")
+    intent.time_start, intent.time_end = start, end
+    intent.time_label = label or (f"{start} to {end}" if start else "all published history")
+    return intent
 
 
 # --------------------------------------------------------------------------------------------- LLM
 
 class ClaudeTranslator:
-    """Same form, filled by Claude through a forced tool call. Never sees SQL, never writes SQL."""
+    """Same form, filled by Claude through a forced tool call. Never sees SQL, never writes SQL.
+
+    Division of labour: Claude READS the question (which metric, which values, which period, in any
+    wording). Everything the agent DECIDES - default period, point-in-time vs per-period, grouping
+    for currencies - is `apply_policy`, the same code as the rule translator. The form Claude returns is
+    first cleaned into canonical values, then goes through the policy, then through the guardrails.
+    """
     name = "claude"
 
-    def __init__(self, catalogue: Catalogue, vocab: Vocabulary, model: str | None = None):
-        import anthropic  # optional dependency
-
-        self.client = anthropic.Anthropic()
+    def __init__(self, catalogue: Catalogue, vocab: Vocabulary, model: str | None = None, client=None):
+        if client is None:
+            import anthropic  # optional dependency
+            client = anthropic.Anthropic()
+        self.client = client
         self.model = model or os.environ.get("AGENT_MODEL", "claude-sonnet-4-5")
         self.cat, self.vocab = catalogue, vocab
 
@@ -238,40 +283,111 @@ class ClaudeTranslator:
             return False
         return True
 
+    # -- the form ---------------------------------------------------------------------------------
+    def _categorical_dims(self) -> dict[str, list[str]]:
+        """Dimension -> every value it takes in the published data (time dimensions are not here)."""
+        out: dict[str, set[str]] = defaultdict(set)
+        for m in self.cat.public_metrics():
+            model = self.cat.model_of(m)
+            for name, d in self.cat.dimensions_of(m).items():
+                if d.type != "time":
+                    out[name].update(self.vocab.values_for(model.name, name))
+        return {k: sorted(v) for k, v in sorted(out.items())}
+
     def _tool(self) -> dict:
         metrics = [m.name for m in self.cat.public_metrics()]
-        dims = sorted({d for m in self.cat.public_metrics() for d in self.cat.dimensions_of(m)})
+        values = self._categorical_dims()
+        groupable = [d for d in values if d not in ("currency_code", "pointer_id")]
+        filters = {d: {"type": "array", "items": {"type": "string", "enum": v} if v else {"type": "string"}}
+                   for d, v in values.items() if d != "pointer_id"}
         return {
             "name": "structured_question",
-            "description": "The question, restated as one governed metric with its dimensions, filters and period.",
+            "description": "The question, restated as one governed metric with its filters, grouping and period.",
             "input_schema": {
                 "type": "object",
                 "properties": {
                     "metric": {"type": ["string", "null"], "enum": metrics + [None],
                                "description": "null if no governed metric answers the question"},
-                    "group_by": {"type": "array", "items": {"type": "string", "enum": dims}},
-                    "filters": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
-                    "time_start": {"type": ["string", "null"], "description": "YYYY-MM-DD inclusive"},
-                    "time_end": {"type": ["string", "null"], "description": "YYYY-MM-DD inclusive"},
-                    "time_label": {"type": ["string", "null"]},
-                    "group_by_time": {"type": "boolean"},
-                    "order": {"type": ["string", "null"], "enum": ["desc", "asc", None]},
+                    "filters": {"type": "object", "properties": filters, "additionalProperties": False,
+                                "description": "Only values the question names. Omit a dimension it does not name."},
+                    "group_by": {"type": "array", "items": {"type": "string", "enum": groupable},
+                                 "description": "Only when the question asks for a breakdown ('by market', "
+                                                "'which category', 'compare ...'). Never a date column."},
+                    "time_start": {"type": ["string", "null"],
+                                   "description": "YYYY-MM-DD, first day of the period the question names. "
+                                                  "null if it names no period: the agent applies its default."},
+                    "time_end": {"type": ["string", "null"],
+                                 "description": "YYYY-MM-DD, last day of that period (e.g. 2026-09-30 for September)."},
+                    "time_label": {"type": ["string", "null"], "description": "The period in words."},
+                    "group_by_time": {"type": "boolean",
+                                      "description": "true ONLY if the user wants the evolution across periods "
+                                                     "('by month', 'over time', 'trend', 'history'). "
+                                                     "'week on week' / 'month on month' describe a change "
+                                                     "metric, not a time series: false."},
+                    "order": {"type": ["string", "null"], "enum": ["desc", "asc", None],
+                              "description": "desc for highest/top/most, asc for lowest/least."},
                 },
-                "required": ["metric", "group_by", "filters", "group_by_time"],
+                "required": ["metric", "filters", "group_by", "group_by_time"],
             },
         }
 
+    # -- cleaning: whatever Claude wrote, make it the canonical form ------------------------------
+    def _canonical(self, dim: str, value: str) -> str:
+        if value in self.vocab.aliases.get(dim, {}).values():
+            return value
+        return self.vocab.aliases.get(dim, {}).get(normalise(value), value)   # 'Japan' -> 'JPN'
+
+    def _clean(self, raw: dict, text: str) -> Intent:
+        intent = Intent.from_dict({k: v for k, v in raw.items() if k != "notes"})
+        metric = self.cat.metrics[intent.metric]
+        model = self.cat.model_of(metric)
+        tdim = model.dimensions[model.time_dimension]
+        time_like = {n for n, d in model.dimensions.items() if d.type == "time"}
+
+        filters: dict[str, list[str]] = {}
+        dates: list[date] = []
+        for dim, values in intent.filters.items():
+            if dim in time_like:                     # a date written as a filter is a period
+                dates += [date.fromisoformat(str(v)[:10]) for v in values]
+                continue
+            if dim == "pointer_id":                  # HERO-01 -> its product
+                labels = dict(zip(self.vocab.values_for("hero_prices", "pointer_id"),
+                                  self.vocab.values_for("hero_prices", "product_label")))
+                dim, values = "product_label", [labels.get(v, v) for v in values]
+            canon = [self._canonical(dim, v) for v in values]
+            filters.setdefault(dim, [])
+            filters[dim] += [v for v in canon if v not in filters[dim]]
+        intent.filters = {d: v for d, v in filters.items() if v}
+        if "product_label" in intent.filters:        # a hero is more precise than its category
+            intent.filters.pop("macro_category", None)
+        if dates and intent.time_start is None:
+            intent.time_start, intent.time_end = min(dates), max(dates)
+            if tdim.granularity == "month":
+                intent.time_end = _month_bounds(intent.time_end.year, intent.time_end.month)[1]
+
+        # time series: the explicit flag, or the words; a date column in group_by alone is not enough
+        intent.group_by_time = intent.group_by_time or wants_time_series(text)
+        # the period: relative words ('last week', 'September') are anchored to the published data
+        start, end, label = parse_period(text, self.vocab.periods.get(model.name, []))
+        if start is not None:
+            intent.time_start, intent.time_end, intent.time_label = start, end, label
+        return intent
+
     def translate(self, question: str) -> Intent | Refusal:
-        values = {f"{m}.{d}": v[:40] for (m, d), v in self.vocab.values.items()}
+        text = " " + normalise(question) + " "
+        outside = [p for p in OTHER_PLACES if re.search(rf"\b{p}\b", text)]
+        if outside:                                   # same rule as offline: never drop a place silently
+            return Refusal(f"{outside[0].title()} is not one of the monitored markets.",
+                           "Monitored markets: " + ", ".join(sorted(self.vocab.market_currency)) + ".")
         periods = {m: [p[0].isoformat(), p[-1].isoformat()] for m, p in self.vocab.periods.items() if p}
         system = (
             "You translate questions about Balenciaga price data into a structured form. "
-            "Only use the metrics, dimensions and values listed. Never invent a value. "
-            "If no metric fits, set metric to null.\n\n"
+            "Fill only what the question says: the metric, the values it names, the period it names. "
+            "Do not add defaults - the agent applies its own rules for periods and grouping. "
+            "Never invent a value. If no metric fits (revenue, forecasts, anything not listed), "
+            "set metric to null.\n\n"
             f"Governed metrics:\n{self.cat.describe()}\n\n"
-            f"Allowed dimension values (semantic_model.dimension -> values): {json.dumps(values)}\n"
-            f"Published periods per semantic model: {json.dumps(periods)}\n"
-            "Prices are in local currency: currency metrics must be grouped by or filtered to one market."
+            f"Published periods per semantic model (first, last): {json.dumps(periods)}"
         )
         response = self.client.messages.create(
             model=self.model, max_tokens=800, system=system,
@@ -282,7 +398,9 @@ class ClaudeTranslator:
         if block is None or not block.input.get("metric"):
             return Refusal("No governed metric answers this question.",
                            "Try `python -m agent metrics` to see what can be asked.")
-        return Intent.from_dict(block.input)
+        if block.input["metric"] not in self.cat.metrics:
+            return Refusal(f"'{block.input['metric']}' is not a governed metric.")
+        return apply_policy(self._clean(block.input, text), self.cat, self.vocab)
 
 
 def make_translator(catalogue: Catalogue, vocab: Vocabulary, prefer: str = "auto"):

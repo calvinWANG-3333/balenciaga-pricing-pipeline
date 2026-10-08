@@ -29,6 +29,9 @@ def check(intent: Intent, cat: Catalogue, vocab: Vocabulary) -> Refusal | None:
 
     # 2. filter values must exist in the published data - no invented market, product or category
     for dim, values in intent.filters.items():
+        if dims[dim].type == "time":
+            return Refusal(f"{dim} is the period of the question, not a filter value.",
+                           "Name the period in words (e.g. 'in September') and the agent will resolve it.")
         allowed = set(vocab.values_for(model.name, dim))
         bad = [v for v in values if v not in allowed]
         if bad:

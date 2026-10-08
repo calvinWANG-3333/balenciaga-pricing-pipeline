@@ -39,3 +39,9 @@ def test_point_in_time_metric_uses_latest_delivery_of_the_month(catalogue, vocab
     intent = RuleTranslator(catalogue, vocab).translate("Price of the Le City bag in the USA in August")
     assert intent.time_start == intent.time_end == vocab.periods["hero_prices"][7]   # 2026-08-25
     assert any("point-in-time" in n for n in intent.notes)
+
+
+def test_market_codes_that_are_english_words_are_not_filters(catalogue, vocab):
+    intent = RuleTranslator(catalogue, vocab).translate("What are the LFL changes for bags, can you show them by market?")
+    assert "market" not in intent.filters
+    assert RuleTranslator(catalogue, vocab).translate("LFL change for bags in the UAE").filters["market"] == ["ARE"]

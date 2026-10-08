@@ -17,8 +17,8 @@ Three pieces:
 | | |
 |---|---|
 | Governed metrics | 10 (+2 hidden building blocks) on 3 semantic models |
-| Evaluation set | **25 / 25** questions handled as specified, including 4 that must be refused |
-| Unit tests | 42 for the agent + 15 for the gate = **57 passed**, offline (no warehouse, no API key) |
+| Evaluation set | **25 / 25** with the rule translator, including 4 that must be refused; the same exam grades the Claude translator |
+| Unit tests | 55 for the agent (incl. 12 for the Claude path, replaying real LLM forms) + 15 for the gate = **70 passed**, offline (no warehouse, no API key) |
 | Triage | the 5 WARN deliveries explained with their upstream cause; on the old design's replay, the 2026-09-15 BLOCK traced to the re-exported file `ALT_2026-09-15_…` (August content under a September name) |
 
 ---
@@ -155,7 +155,22 @@ Two translators fill the same form:
   match first, so "Le City bag" is a hero and not the Bags category. Periods are parsed relative to the
   published data (`September`, `Q3`, `last month`, `latest`).
 - **ClaudeTranslator** (when `ANTHROPIC_API_KEY` is set): better at messy phrasing, same form, same
-  guardrails.
+  guardrails. The tool schema only offers categorical dimensions, with their real values as enums: no
+  date column can be grouped or filtered.
+
+**Reader vs policy.** A translator only *reads*: which metric, which values, which period the question
+names. What the agent *decides* (latest delivery by default, a price is a point-in-time value, a rate is
+shown per period, a currency metric is shown per market, a value pinned by a filter is not also a group)
+lives in one function, `apply_policy`, that both translators go through. The Claude path also has a
+cleaning step first: `Japan` → `JPN`, `HERO-02` → its product, a date written as a filter → a period,
+a date column in `group_by` → ignored.
+
+Why this split exists. The first live run with Claude scored **14/25** while the rules scored 25/25.
+Claude had read every question correctly. It had filled the form *literally*: `report_month = 2026-09-01`
+as a filter (refused by the value guardrail), `delivery_date` in `group_by`, no period when none was
+named, the whole of August for a price. The fix was not a better prompt. The business rules moved out of
+the rule translator into the shared policy, and the LLM's raw forms became replay tests
+(`tests/test_claude_translator.py`, a stub client, no API key needed).
 
 ### 2.4 Guardrails: when the right answer is "no"
 
@@ -189,7 +204,8 @@ code.
 period, or `refuse: true`. `python -m agent eval` runs them against the live vocabulary, and pytest runs
 them offline against a fixed one. A change that improves one question and breaks another shows up at once.
 When the Claude translator is switched on, the same evaluation set measures it, so the LLM is graded on
-exactly the same exam as the rules.
+exactly the same exam as the rules (`--translator claude`; the default `auto` picks Claude whenever
+`ANTHROPIC_API_KEY` is exported).
 
 ### 2.7 The triage agent: from "what failed" to "why, and what now"
 
@@ -276,13 +292,14 @@ cd ..
 ### Step 4 – run the agent
 
 ```bash
-python -m pytest agent/tests qa/tests -q            # 57 passed
+python -m pytest agent/tests qa/tests -q            # 70 passed
 python -m agent metrics                             # the governed catalogue
 python -m agent ask "How much is the Le City bag in the USA?"
 python -m agent ask "Which market had the highest bag price increase last month?"
 python -m agent ask "What is the median price of bags?"
 python -m agent ask "LFL change for shoes in Germany"     # must refuse
-python -m agent eval                                # 25/25
+python -m agent eval --translator rules             # 25/25, offline translator, free
+python -m agent eval --translator claude            # same exam for the LLM (needs ANTHROPIC_API_KEY, a few cents)
 python -m agent triage --out triage_marts.md
 python -m agent triage --dataset legacy_replay --out triage_legacy.md
 streamlit run agent/app.py                          # the UI, in your browser
@@ -301,7 +318,7 @@ gh pr create --fill && gh pr merge --merge --delete-branch
 **Checkpoint – Phase 5b is done when:**
 - [ ] `dbt build` passes in Studio (reference run: 165 PASS; new time spine, `fct_price_changes` with `macro_category`)
 - [ ] `dbt parse` writes `dbt/target/semantic_manifest.json` locally
-- [ ] `pytest agent/tests qa/tests` = 57 passed; `python -m agent eval` = 25/25
+- [ ] `pytest agent/tests qa/tests` = 70 passed; `python -m agent eval --translator rules` = 25/25
 - [ ] triage on `legacy_replay` names the stale re-export as the cause of 2026-09-15
 - [ ] PR merged
 
@@ -317,6 +334,7 @@ gh pr create --fill && gh pr merge --merge --delete-branch
 | `dbt deps` fails with a certificate error | the network re-signs HTTPS (see doc 07) | other network, or ask me: dbt does not use the macOS keychain |
 | `test_fixture_matches_dbt_yaml` fails | you changed a metric in dbt | `dbt parse`, then copy `dbt/target/semantic_manifest.json` to `agent/tests/fixtures/` |
 | the agent picks the wrong metric | no synonym matches the wording | add the phrase to the metric's `synonyms` in `_metrics.yml`, add the question to `evals/questions.yml`, re-parse |
+| `eval` prints `Translator: claude` and a lower score | `ANTHROPIC_API_KEY` is exported, so `auto` chose Claude | compare with `--translator rules`; each FAIL line shows the field Claude filled differently. A pattern (a date as a filter, a missing period) belongs in `apply_policy` or the Claude cleaning step, with a replay case in `test_claude_translator.py` |
 | answers are empty | nothing released yet | `python -m qa.gate audit` (the agent only reads released deliveries) |
 
 ---
@@ -338,6 +356,11 @@ gh pr create --fill && gh pr merge --merge --delete-branch
 > "I evaluate the agent like a model: 25 questions with expected metric, filters, period, or an expected
 > refusal. It runs offline in pytest and live against the warehouse. The rule-based translator passes
 > 25/25, and if I switch on Claude it's graded on the same exam."
+
+> "The first time I plugged Claude in, it scored 14 out of 25 where the rules scored 25. It understood
+> every question; it just filled the form literally, like putting a date in a filter. So I separated
+> reading from deciding: the LLM only reads, and the business rules live in one deterministic policy that
+> both translators go through. Its raw outputs became replay tests that run without an API key."
 
 > "The gate tells me what failed; the triage agent tells me why. It drills into the evidence. On the
 > replayed incident it pointed at the exact re-exported file that carried August prices under a September

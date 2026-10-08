@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from agent import semantic
-from agent.vocabulary import (CATEGORY_ALIASES, DIRECTION_ALIASES, MARKET_ALIASES, Vocabulary,
+from agent.vocabulary import (CATEGORY_ALIASES, DIRECTION_ALIASES, MARKET_ALIASES, Vocabulary, code_aliases,
                               normalise, product_aliases)
 
 FIXTURES = Path(__file__).with_name("fixtures")
@@ -48,7 +48,7 @@ def vocab():
     v.periods["category_monthly"] = [date(2026, 7, 1), date(2026, 8, 1), date(2026, 9, 1)]
     v.periods["price_changes"] = [date(2026, 7, 13) + timedelta(weeks=i) for i in range(12) if i != 6]
     v.market_currency = {m: c for m, (_, c) in MARKETS.items()}
-    aliases = {m.lower(): m for m in MARKETS}
+    aliases = code_aliases(MARKETS)
     aliases.update({normalise(name): m for m, (name, _) in MARKETS.items()})
     aliases.update(MARKET_ALIASES)
     v.aliases["market"] = aliases

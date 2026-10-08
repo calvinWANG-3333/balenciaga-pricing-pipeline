@@ -14,6 +14,14 @@ from datetime import date
 from .semantic import Catalogue
 
 # words people use that are not in the data
+# market codes that are also English words: "what ARE prices", "CAN you show" must not become a filter
+CODES_THAT_ARE_WORDS = {"are", "can"}
+
+
+def code_aliases(codes) -> dict[str, str]:
+    return {c.lower(): c for c in codes if c.lower() not in CODES_THAT_ARE_WORDS}
+
+
 MARKET_ALIASES = {
     "usa": "USA", "u.s.": "USA", "united states": "USA", "america": "USA", "american": "USA",
     "uk": "GBR", "u.k.": "GBR", "britain": "GBR", "great britain": "GBR", "england": "GBR", "london": "GBR",
@@ -96,7 +104,7 @@ def load(catalogue: Catalogue, db, published_schema: str) -> Vocabulary:
     markets = db.query(f"select market, market_name, currency_code from {published_schema}.pub_dim_market")
     vocab.market_currency = {r["market"]: r["currency_code"] for r in markets}
     known_markets = {r["market"] for r in markets}
-    market_aliases = {m.lower(): m for m in known_markets}
+    market_aliases = code_aliases(known_markets)
     market_aliases.update({normalise(r["market_name"]): r["market"] for r in markets})
     market_aliases.update({k: v for k, v in MARKET_ALIASES.items() if v in known_markets})
     vocab.aliases["market"] = market_aliases
