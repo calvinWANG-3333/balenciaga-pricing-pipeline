@@ -61,5 +61,21 @@ seeds:
           - unique
           - not_null
 
+  - name: markets
+    description: >
+      Reference list of the 16 crawled markets. crawl_cadence = weekly (in every weekly crawl, Micro scope)
+      or monthly (only in the extended month-end crawl). Grain: one row per market.
+    config:
+      column_types:
+        display_order: int
+    columns:
+      - name: market
+        data_tests: [unique, not_null]
+      - name: crawl_cadence
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [weekly, monthly]
+
 # Seed hygiene: seeds are loaded through SQL INSERT statements, so keep them free of apostrophes and
 # backslashes (regex word boundaries are written as (^|[^a-z]) ... ([^a-z]|$) instead of \b).

@@ -1,0 +1,220 @@
+version: 2
+
+# Marts are the published interface of the project: BI, the metrics agent and the deliverables read
+# them. Their shape is a promise, so every mart has an ENFORCED CONTRACT: dbt refuses to build a mart
+# whose columns or data types differ from what is declared here.
+
+models:
+  # ------------------------------------------------------------------------------------------- core
+  - name: dim_product
+    description: >
+      Grain: one row per product (SKU). Name, harmonized LY category, the brand's own tags for
+      traceability, lifespan, and whether a client tracks it in Micro.
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: sku, data_type: string, data_tests: [unique, not_null]}
+      - {name: product_name, data_type: string}
+      - {name: color, data_type: string}
+      - {name: collection, data_type: string}
+      - name: ly_category_code
+        data_type: string
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('ly_category_tree'), field: ly_category_code}
+      - {name: ly_category_name, data_type: string}
+      - {name: ly_level_1, data_type: string}
+      - {name: ly_level_2, data_type: string}
+      - {name: macro_category, data_type: string, description: "Macro reporting category; null = out of Macro scope."}
+      - {name: is_in_macro_scope, data_type: boolean}
+      - {name: categorized_by_rule, data_type: string}
+      - {name: brand_macro_category, data_type: string}
+      - {name: brand_super_micro_category, data_type: string}
+      - {name: first_seen_date, data_type: date}
+      - {name: last_seen_date, data_type: date}
+      - {name: n_markets_seen, data_type: int}
+      - {name: is_micro_pointer, data_type: boolean}
+      - {name: micro_pointer_id, data_type: string}
+      - {name: micro_product_label, data_type: string}
+
+  - name: dim_market
+    description: Grain - one row per market. Region, currency and crawl cadence (weekly = Micro scope).
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: market, data_type: string, data_tests: [unique, not_null]}
+      - {name: market_name, data_type: string}
+      - {name: region, data_type: string}
+      - {name: currency_code, data_type: string}
+      - {name: crawl_cadence, data_type: string}
+      - {name: is_in_micro_scope, data_type: boolean}
+      - {name: display_order, data_type: int}
+
+  - name: fct_price_observations
+    description: >
+      Grain: one row per accepted price reading (market batch x product). Incremental (MERGE on
+      observation_id, with a lookback window); a full refresh always reproduces it.
+    config:
+      contract: {enforced: true}
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('int_observations__accepted')
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [market_batch_id, object_id]
+    columns:
+      - {name: observation_id, data_type: string, data_tests: [unique, not_null]}
+      - {name: market_batch_id, data_type: string}
+      - {name: crawl_date, data_type: date, data_tests: [not_null]}
+      - {name: delivered_at, data_type: timestamp}
+      - {name: crawl_scope, data_type: string}
+      - {name: is_partial_market_batch, data_type: boolean}
+      - name: market
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_market'), field: market}
+      - name: sku
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_product'), field: sku}
+      - {name: object_id, data_type: string}
+      - {name: price_local, data_type: "decimal(18,2)", data_tests: [not_null]}
+      - {name: currency_code, data_type: string}
+      - {name: stock_status, data_type: string}
+      - {name: crawled_at, data_type: timestamp}
+
+  - name: fct_price_changes
+    description: >
+      Grain: one row per price change event (product-market x crawl where the new price first appeared).
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: price_change_id, data_type: string, data_tests: [unique, not_null]}
+      - {name: object_id, data_type: string}
+      - {name: sku, data_type: string}
+      - {name: market, data_type: string}
+      - {name: currency_code, data_type: string}
+      - {name: changed_on_crawl_date, data_type: date}
+      - {name: price_before, data_type: "decimal(18,2)"}
+      - {name: price_after, data_type: "decimal(18,2)"}
+      - {name: change_pct, data_type: "decimal(10,4)"}
+      - name: change_direction
+        data_type: string
+        data_tests:
+          - accepted_values:
+              arguments: {values: [increase, decrease]}
+
+  - name: fct_catalogue_as_of
+    description: >
+      Grain: one row per (reporting date, product-market). The point-in-time catalogue exposed to
+      consumers; Micro and Macro are projections of it (tested).
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: catalogue_row_id, data_type: string, data_tests: [unique, not_null]}
+      - {name: as_of_date, data_type: date}
+      - {name: is_micro_date, data_type: boolean}
+      - {name: is_macro_date, data_type: boolean}
+      - {name: market, data_type: string}
+      - {name: sku, data_type: string}
+      - {name: object_id, data_type: string}
+      - {name: presence_crawl_date, data_type: date}
+      - {name: presence_age_days, data_type: int}
+      - {name: has_price, data_type: boolean}
+      - {name: price_local, data_type: "decimal(18,2)"}
+      - {name: currency_code, data_type: string}
+      - {name: price_crawl_date, data_type: date}
+      - {name: is_price_carried_forward, data_type: boolean}
+
+  # ------------------------------------------------------------------------------------------ micro
+  - name: mart_micro__hero_prices_weekly
+    description: >
+      Grain: one row per (weekly delivery date, hero product, weekly market) - a complete grid. The Micro
+      deliverable: price, change vs previous delivery, and the flags analysts used to check by hand.
+    config:
+      contract: {enforced: true}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [delivery_date, pointer_id, market]
+    columns:
+      - {name: micro_row_id, data_type: string, data_tests: [unique, not_null]}
+      - {name: delivery_date, data_type: date}
+      - {name: pointer_id, data_type: string}
+      - {name: sku, data_type: string}
+      - {name: product_label, data_type: string}
+      - {name: market, data_type: string}
+      - {name: currency_code, data_type: string}
+      - {name: price_local, data_type: "decimal(18,2)"}
+      - {name: previous_price_local, data_type: "decimal(18,2)"}
+      - {name: change_vs_previous_pct, data_type: "decimal(10,4)"}
+      - name: price_status
+        data_type: string
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [first_delivery, unchanged, price_increase, price_decrease, no_valid_price, not_found, page_error]
+      - {name: crawl_date_used, data_type: date, description: "The crawl the row reflects (also filled for not_found / page_error rows: the crawl in which the product was looked for)."}
+      - {name: price_crawl_date, data_type: date}
+      - {name: is_stale_crawl, data_type: boolean, description: "The crawl used is more than 7 days old (e.g. the market was missing from this week's crawl)."}
+      - {name: is_price_carried_forward, data_type: boolean}
+
+  # ------------------------------------------------------------------------------------------ macro
+  - name: mart_macro__category_monthly
+    description: >
+      Grain: one row per (month, market, macro category). The Macro deliverable: count, min / median /
+      mean / max price in local currency, and like-for-like change vs the previous month-end
+      (lfl_mean_change = mean of product changes, the headline; lfl_ratio_of_means = basket change).
+    config:
+      contract: {enforced: true}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [report_month, market, macro_category]
+    columns:
+      - {name: macro_row_id, data_type: string, data_tests: [unique, not_null]}
+      - {name: report_month, data_type: date}
+      - {name: as_of_date, data_type: date}
+      - {name: market, data_type: string}
+      - name: macro_category
+        data_type: string
+        data_tests:
+          - accepted_values:
+              arguments: {values: [Bags, Small Leather Goods, Shoes, Accessories]}
+      - {name: currency_code, data_type: string}
+      - {name: n_products, data_type: int}
+      - {name: min_price, data_type: "decimal(18,2)"}
+      - {name: median_price, data_type: "decimal(18,2)"}
+      - {name: mean_price, data_type: "decimal(18,2)"}
+      - {name: max_price, data_type: "decimal(18,2)"}
+      - {name: lfl_n_products, data_type: int}
+      - {name: lfl_mean_change, data_type: "decimal(10,4)"}
+      - {name: lfl_ratio_of_means, data_type: "decimal(10,4)"}
+      - {name: lfl_share_increased, data_type: "decimal(10,4)"}
+
+  - name: mart_macro__category_monthly_global
+    description: >
+      Grain: one row per (month, macro category), all markets together. market_weighted_lfl_change (every
+      market counts once - the headline) and product_weighted_lfl_change (pooled product-market pairs).
+    config:
+      contract: {enforced: true}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [report_month, macro_category]
+    columns:
+      - {name: macro_global_row_id, data_type: string, data_tests: [unique, not_null]}
+      - {name: report_month, data_type: date}
+      - {name: macro_category, data_type: string}
+      - {name: n_markets, data_type: int}
+      - {name: lfl_n_product_markets, data_type: int}
+      - {name: market_weighted_lfl_change, data_type: "decimal(10,4)"}
+      - {name: product_weighted_lfl_change, data_type: "decimal(10,4)"}
+      - {name: min_market_lfl_change, data_type: "decimal(10,4)"}
+      - {name: max_market_lfl_change, data_type: "decimal(10,4)"}
+      - {name: market_with_highest_change, data_type: string}

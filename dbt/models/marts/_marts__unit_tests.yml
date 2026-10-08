@@ -1,0 +1,85 @@
+version: 2
+
+# Unit tests pin the two pieces of mart logic that are easy to get subtly wrong and impossible to
+# eyeball in a 50k-row table: the like-for-like definition (Macro) and the "previous delivery" logic
+# (Micro). Inputs are tiny hand-written tables; dbt runs the model's SQL on them and compares the output.
+
+unit_tests:
+
+  - name: macro_lfl_mean_of_changes_differs_from_ratio_of_means
+    description: >
+      Product A goes 100 -> 110 (+10%), product B stays at 1,000 (0%). The headline lfl_mean_change must
+      be +5.00% (each product counts once), while the basket view lfl_ratio_of_means is only +0.91%
+      (1,110 / 1,100 - 1). Product C exists only in August: it is counted in the August price levels but
+      is NOT part of the like-for-like comparison. The first month has no previous month, so no LFL.
+    model: mart_macro__category_monthly
+    given:
+      - input: ref('int_catalogue__as_of')
+        rows:
+          - {as_of_date: 2026-07-31, is_macro_date: true, has_price: true, market: FRA, currency_code: EUR, sku: A, price_local: 100}
+          - {as_of_date: 2026-07-31, is_macro_date: true, has_price: true, market: FRA, currency_code: EUR, sku: B, price_local: 1000}
+          - {as_of_date: 2026-08-31, is_macro_date: true, has_price: true, market: FRA, currency_code: EUR, sku: A, price_local: 110}
+          - {as_of_date: 2026-08-31, is_macro_date: true, has_price: true, market: FRA, currency_code: EUR, sku: B, price_local: 1000}
+          - {as_of_date: 2026-08-31, is_macro_date: true, has_price: true, market: FRA, currency_code: EUR, sku: C, price_local: 5000}
+          # a Micro-only date must be ignored by Macro
+          - {as_of_date: 2026-08-18, is_macro_date: false, has_price: true, market: FRA, currency_code: EUR, sku: A, price_local: 999}
+      - input: ref('int_products__categorized')
+        rows:
+          - {sku: A, macro_category: Bags}
+          - {sku: B, macro_category: Bags}
+          - {sku: C, macro_category: Bags}
+    expect:
+      rows:
+        - {report_month: 2026-07-01, market: FRA, macro_category: Bags, n_products: 2, min_price: 100, max_price: 1000, lfl_n_products: 0, lfl_mean_change: null, lfl_ratio_of_means: null, lfl_share_increased: null}
+        - {report_month: 2026-08-01, market: FRA, macro_category: Bags, n_products: 3, min_price: 110, max_price: 5000, lfl_n_products: 2, lfl_mean_change: 0.0500, lfl_ratio_of_means: 0.0091, lfl_share_increased: 0.5000}
+
+  - name: micro_previous_price_skips_weeks_without_a_valid_price
+    description: >
+      Le City Bag in USA: $3,090 on week 1, found but without a valid price on week 2, $3,310 on week 3.
+      Week 3 must compare against $3,090 (the last VALID price), not against an empty week 2.
+      In GBR the bag is absent from weeks 1-2 (not_found) and its page returned an error in week 3
+      (page_error - the crawler could not read it, which is NOT evidence of a delisting).
+      In KOR there is no crawl at all: not_found, with no crawl date.
+    model: mart_micro__hero_prices_weekly
+    given:
+      - input: ref('int_as_of_dates')
+        rows:
+          - {as_of_date: 2026-09-01, is_micro_date: true}
+          - {as_of_date: 2026-09-08, is_micro_date: true}
+          - {as_of_date: 2026-09-15, is_micro_date: true}
+          - {as_of_date: 2026-09-30, is_micro_date: false}
+      - input: ref('micro_pointers')
+        rows:
+          - {pointer_id: HERO-01, sku: 543321TT8F11000, product_label: Le City Bag Medium (black)}
+      - input: ref('dim_market')
+        rows:
+          - {market: USA, currency_code: USD, is_in_micro_scope: true}
+          - {market: GBR, currency_code: GBP, is_in_micro_scope: true}
+          - {market: KOR, currency_code: KRW, is_in_micro_scope: true}
+          - {market: BRA, currency_code: BRL, is_in_micro_scope: false}
+      - input: ref('int_catalogue__as_of')
+        rows:
+          - {as_of_date: 2026-09-01, is_micro_date: true, market: USA, sku: 543321TT8F11000, object_id: o1, presence_batch_id: usa1, presence_crawl_date: 2026-08-31, has_price: true,  price_local: 3090, price_crawl_date: 2026-08-31, is_price_carried_forward: false}
+          - {as_of_date: 2026-09-08, is_micro_date: true, market: USA, sku: 543321TT8F11000, object_id: o1, presence_batch_id: usa2, presence_crawl_date: 2026-09-07, has_price: false, price_local: null, price_crawl_date: null,       is_price_carried_forward: false}
+          - {as_of_date: 2026-09-15, is_micro_date: true, market: USA, sku: 543321TT8F11000, object_id: o1, presence_batch_id: usa3, presence_crawl_date: 2026-09-14, has_price: true,  price_local: 3310, price_crawl_date: 2026-09-14, is_price_carried_forward: false}
+          # GBR: another product shows which crawl GBR was served from; the hero itself is absent
+          - {as_of_date: 2026-09-01, is_micro_date: true, market: GBR, sku: OTHER, object_id: o9, presence_batch_id: gbr1, presence_crawl_date: 2026-08-31, has_price: true, price_local: 100, price_crawl_date: 2026-08-31, is_price_carried_forward: false}
+          - {as_of_date: 2026-09-08, is_micro_date: true, market: GBR, sku: OTHER, object_id: o9, presence_batch_id: gbr2, presence_crawl_date: 2026-09-07, has_price: true, price_local: 100, price_crawl_date: 2026-09-07, is_price_carried_forward: false}
+          - {as_of_date: 2026-09-15, is_micro_date: true, market: GBR, sku: OTHER, object_id: o9, presence_batch_id: gbr3, presence_crawl_date: 2026-09-14, has_price: true, price_local: 100, price_crawl_date: 2026-09-14, is_price_carried_forward: false}
+      - input: ref('int_observations__classified')
+        rows:
+          - {market_batch_id: gbr3, sku: 543321TT8F11000, is_not_a_product_page: true}
+          - {market_batch_id: gbr3, sku: OTHER,           is_not_a_product_page: false}
+    expect:
+      rows:
+        - {delivery_date: 2026-09-01, market: USA, price_local: 3090, previous_price_local: null, change_vs_previous_pct: null,   price_status: first_delivery, crawl_date_used: 2026-08-31}
+        - {delivery_date: 2026-09-08, market: USA, price_local: null, previous_price_local: 3090, change_vs_previous_pct: null,   price_status: no_valid_price, crawl_date_used: 2026-09-07}
+        - {delivery_date: 2026-09-15, market: USA, price_local: 3310, previous_price_local: 3090, change_vs_previous_pct: 0.0712, price_status: price_increase, crawl_date_used: 2026-09-14}
+        - {delivery_date: 2026-09-01, market: GBR, price_local: null, previous_price_local: null, change_vs_previous_pct: null,   price_status: not_found,      crawl_date_used: 2026-08-31}
+        - {delivery_date: 2026-09-08, market: GBR, price_local: null, previous_price_local: null, change_vs_previous_pct: null,   price_status: not_found,      crawl_date_used: 2026-09-07}
+        - {delivery_date: 2026-09-15, market: GBR, price_local: null, previous_price_local: null, change_vs_previous_pct: null,   price_status: page_error,     crawl_date_used: 2026-09-14}
+        - {delivery_date: 2026-09-01, market: KOR, price_local: null, previous_price_local: null, change_vs_previous_pct: null,   price_status: not_found,      crawl_date_used: null}
+        - {delivery_date: 2026-09-08, market: KOR, price_local: null, previous_price_local: null, change_vs_previous_pct: null,   price_status: not_found,      crawl_date_used: null}
+        - {delivery_date: 2026-09-15, market: KOR, price_local: null, previous_price_local: null, change_vs_previous_pct: null,   price_status: not_found,      crawl_date_used: null}
+
+# Note: every expected row lists the same columns - dbt compares exactly the columns named in `expect`.
