@@ -1,0 +1,132 @@
+# Evaluation set of the metrics agent.
+# Each case: a question and what the translator + guardrails must produce. `refuse: true` means the only
+# correct behaviour is to say no. Run: python -m agent eval   (also run by pytest with a fixed vocabulary).
+# Dates refer to the published deliveries of the reference data (seed 42): Micro 2026-07-07 .. 2026-09-29,
+# Macro report months 2026-07 .. 2026-09.
+
+cases:
+  # ----------------------------------------------------------------------------------- Micro: heroes
+  - question: How much is the Le City bag in the USA?
+    expect:
+      metric: hero_price
+      filters: {product_label: [Le City Bag Medium (black)], market: [USA]}
+      group_by: []
+      time_start: 2026-09-29
+  - question: Price of the Rodeo handbag in Japan in August
+    expect:
+      metric: hero_price
+      filters: {product_label: [Rodeo Handbag Small (black)], market: [JPN]}
+      group_by: []
+      time_start: 2026-08-25
+      time_end: 2026-08-25
+  - question: Hero price of the 3XL sneaker by market in September 2026
+    expect:
+      metric: hero_price
+      filters: {product_label: [3XL Sneaker (black)]}
+      group_by: [market]
+      time_start: 2026-09-29
+  - question: How much is the Le City card holder in Hong Kong?
+    expect:
+      metric: hero_price
+      filters: {product_label: [Le City Card Holder (black)], market: [HKG]}
+  - question: price of the triple s in korea last week
+    expect:
+      metric: hero_price
+      filters: {product_label: [Triple S.2 Sneaker (black)], market: [KOR]}
+      time_start: 2026-09-29
+  - question: How did hero prices change week on week?
+    expect:
+      metric: hero_price_change
+      group_by: [product_label]
+      time_start: 2026-09-29
+  - question: How many hero price increases were there by market in September?
+    expect:
+      metric: hero_price_increases
+      group_by: [market]
+      time_start: 2026-09-01
+      time_end: 2026-09-30
+
+  # ----------------------------------------------------------------------------------- Macro: categories
+  - question: What was the like-for-like price change for bags in Japan in September?
+    expect:
+      metric: category_lfl_change
+      filters: {macro_category: [Bags], market: [JPN]}
+      group_by: []
+      time_start: 2026-09-01
+      time_end: 2026-09-01
+  - question: How much did prices change in September by category?
+    expect:
+      metric: category_lfl_change
+      group_by: [macro_category]
+  - question: Which market had the highest bag price increase last month?
+    expect:
+      metric: category_lfl_change
+      filters: {macro_category: [Bags]}
+      group_by: [market]
+      order: desc
+  - question: LFL change for small leather goods
+    expect:
+      metric: category_lfl_change
+      filters: {macro_category: [Small Leather Goods]}
+      group_by: []
+      time_start: 2026-09-01
+  - question: Compare the LFL change of bags in France and Japan
+    expect:
+      metric: category_lfl_change
+      filters: {macro_category: [Bags], market: [FRA, JPN]}
+      group_by: [market]
+  - question: Lfl change by category in Mainland China
+    expect:
+      metric: category_lfl_change
+      filters: {market: [CHN]}
+      group_by: [macro_category]
+  - question: Product-weighted like-for-like change for bags
+    expect:
+      metric: category_lfl_change_product_weighted
+      filters: {macro_category: [Bags]}
+  - question: How many products are listed in shoes by market?
+    expect:
+      metric: category_product_count
+      filters: {macro_category: [Shoes]}
+      group_by: [market]
+  - question: What is the median price of bags?
+    expect:
+      metric: category_median_price
+      filters: {macro_category: [Bags]}
+      group_by: [market]
+  - question: Median price of accessories in France
+    expect:
+      metric: category_median_price
+      filters: {macro_category: [Accessories], market: [FRA]}
+      group_by: []
+  - question: What share of products increased in price in September?
+    expect:
+      metric: category_share_increased
+      group_by: [macro_category]
+
+  # ----------------------------------------------------------------------------------- Price changes
+  - question: How many price increases were there in Japan in September?
+    expect:
+      metric: price_change_count
+      filters: {market: [JPN], change_direction: [increase]}
+      time_start: 2026-09-01
+      time_end: 2026-09-30
+  - question: How many price changes by month?
+    expect:
+      metric: price_change_count
+      group_by: []
+  - question: Average size of price decreases in the USA
+    expect:
+      metric: average_price_change
+      filters: {market: [USA], change_direction: [decrease]}
+      group_by: []
+
+  # ----------------------------------------------------------------------------------- must refuse
+  - question: What is Balenciaga's revenue in France?
+    expect: {refuse: true}
+  - question: LFL change for shoes in Germany
+    expect: {refuse: true}
+  - question: What will bag prices be next year?
+    expect: {refuse: true}
+  - question: How many price changes were there in December 2026?
+    expect: {refuse: true}

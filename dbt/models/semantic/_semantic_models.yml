@@ -1,0 +1,114 @@
+version: 2
+
+# ==================================================================================================
+# The semantic layer: WHAT can be measured, and HOW, defined once.
+#
+# Plain: a dictionary of the business's numbers. "Bags like-for-like change" has exactly one definition
+# here - which table, which column, which aggregation, which dimensions it can be cut by. Dashboards and
+# the metrics agent look the definition up instead of re-inventing the SQL each time.
+#
+# Term: dbt semantic models (MetricFlow spec). Each semantic model sits on ONE published view (released
+# deliveries only - see models/published), and declares its entities (keys), dimensions (what you can
+# group or filter by) and measures (aggregations). Metrics (_metrics.yml) are built on measures.
+# `dbt parse` compiles all of it into target/semantic_manifest.json - the file the agent reads.
+# ==================================================================================================
+
+semantic_models:
+
+  # ------------------------------------------------------------------------------------------ Micro
+  - name: hero_prices
+    description: Weekly Micro delivery - one row per (delivery date, hero product, weekly market).
+    model: ref('pub_micro__hero_prices_weekly')
+    defaults:
+      agg_time_dimension: delivery_date
+    entities:
+      - name: hero_cell
+        type: primary
+        expr: micro_row_id
+    dimensions:
+      - name: delivery_date
+        type: time
+        type_params: {time_granularity: day}
+      - {name: pointer_id, type: categorical, description: "Hero id (HERO-01 ... HERO-08)."}
+      - {name: product_label, type: categorical, description: "Hero product name."}
+      - {name: market, type: categorical, description: "ISO-3 market code."}
+      - {name: currency_code, type: categorical}
+      - {name: price_status, type: categorical, description: "first_delivery, unchanged, price_increase, price_decrease, no_valid_price, not_found, page_error."}
+    measures:
+      - name: hero_price_local
+        description: Average hero price in local currency (one row = one product x market x date).
+        agg: average
+        expr: price_local
+      - name: hero_change_vs_previous
+        description: Average change vs the previous delivery.
+        agg: average
+        expr: change_vs_previous_pct
+      - name: hero_price_increase_cells
+        description: Hero x market cells whose price went up vs the previous delivery.
+        agg: sum
+        expr: "case when price_status = 'price_increase' then 1 else 0 end"
+
+  # ------------------------------------------------------------------------------------------ Macro
+  - name: category_monthly
+    description: Monthly Macro delivery - one row per (month, market, macro category).
+    model: ref('pub_macro__category_monthly')
+    defaults:
+      agg_time_dimension: report_month
+    entities:
+      - name: category_month
+        type: primary
+        expr: macro_row_id
+    dimensions:
+      - name: report_month
+        type: time
+        type_params: {time_granularity: month}
+      - {name: market, type: categorical}
+      - {name: macro_category, type: categorical, description: "Bags, Small Leather Goods, Shoes, Accessories."}
+      - {name: currency_code, type: categorical}
+    measures:
+      - name: market_lfl_change
+        description: Like-for-like change of a market (mean of product changes); averaged over markets it is the market-weighted headline.
+        agg: average
+        expr: lfl_mean_change
+      - name: lfl_change_x_products
+        description: LFL change weighted by the number of like-for-like products (numerator of the product-weighted change).
+        agg: sum
+        expr: lfl_mean_change * lfl_n_products
+      - name: lfl_products
+        description: Like-for-like products (denominator of the product-weighted change).
+        agg: sum
+        expr: "case when lfl_mean_change is not null then lfl_n_products else 0 end"
+      - name: products_listed
+        agg: sum
+        expr: n_products
+      - name: category_median_price_local
+        agg: average
+        expr: median_price
+      - name: share_of_products_increased
+        agg: average
+        expr: lfl_share_increased
+
+  # ------------------------------------------------------------------------------------- Price changes
+  - name: price_changes
+    description: One row per price change event (product-market x crawl where the new price first appeared).
+    model: ref('pub_fct_price_changes')
+    defaults:
+      agg_time_dimension: changed_on_crawl_date
+    entities:
+      - name: price_change
+        type: primary
+        expr: price_change_id
+    dimensions:
+      - name: changed_on_crawl_date
+        type: time
+        type_params: {time_granularity: day}
+      - {name: market, type: categorical}
+      - {name: macro_category, type: categorical}
+      - {name: change_direction, type: categorical, description: "increase or decrease."}
+    measures:
+      - name: price_change_events
+        agg: count
+        expr: price_change_id
+      - name: price_change_pct
+        agg: average
+        expr: change_pct

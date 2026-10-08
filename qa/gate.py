@@ -18,8 +18,8 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 import uuid
-from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -70,19 +70,29 @@ def released_deliveries(db: Backend, ops: str) -> set[tuple[str, date]]:
     return {(r["scope"], _as_date(r["as_of_date"])) for r in rows}
 
 
+def log(message: str) -> None:
+    """Progress goes to stderr (flushed at once), so the report on stdout stays clean."""
+    print(message, file=sys.stderr, flush=True)
+
+
 def measure(db: Backend, catalogue: cat.Catalogue, dataset: cat.Dataset, deliveries: list[cat.Delivery],
-            placeholders: dict[str, str]) -> dict[str, list[dict]]:
+            placeholders: dict[str, str], quiet: bool = False) -> dict[str, list[dict]]:
     """Run every applicable check ONCE over the whole calendar: values for all deliveries."""
     measured: dict[str, list[dict]] = {}
     scopes_in_calendar = {d.scope for d in deliveries}
-    for check in catalogue.checks:
-        if dataset.name not in check.datasets or not (set(check.scopes) & scopes_in_calendar):
-            continue
+    todo = [c for c in catalogue.checks
+            if dataset.name in c.datasets and set(c.scopes) & scopes_in_calendar]
+    for i, check in enumerate(todo, 1):
         sql = cat.render(check, dataset, deliveries, placeholders)
+        started = time.monotonic()
+        if not quiet:
+            log(f"  [{i:>2}/{len(todo)}] {check.id:<32} ...")
         try:
             measured[check.id] = db.query(sql)
         except Exception as exc:                     # a broken check must be visible, not silent
             raise SystemExit(f"Check {check.id} failed to run:\n{exc}\n\n--- SQL ---\n{sql}") from exc
+        if not quiet:
+            log(f"          done in {time.monotonic() - started:.1f}s ({len(measured[check.id])} rows)")
     return measured
 
 
@@ -170,9 +180,13 @@ def cmd_audit(args, settings: Settings) -> int:
     catalogue = cat.load()
     dataset = catalogue.datasets[args.dataset]
     ph = settings.placeholders()
+    log(f"Connecting to {settings.backend} (marts schema: {ph['marts']}) ... "
+        "the first query can take a minute or two while a serverless SQL warehouse starts.")
+    started = time.monotonic()
     db = connect(settings)
     try:
         deliveries = load_deliveries(db, dataset, ph)
+        log(f"Connected in {time.monotonic() - started:.1f}s - {len(deliveries)} deliveries in the calendar.")
         scopes = SCOPES if args.scope == "all" else (args.scope,)
         deliveries = [d for d in deliveries if d.scope in scopes]
 
@@ -189,13 +203,15 @@ def cmd_audit(args, settings: Settings) -> int:
             print("Nothing to audit: every delivery is already released.")
             return 0
 
+        log(f"Auditing {len(targets)} deliver{'y' if len(targets) == 1 else 'ies'} of dataset {args.dataset}:")
         measured = measure(db, catalogue, dataset, deliveries, ph)
 
         def remeasure(adjusted: cat.Delivery) -> dict[str, list[dict]]:
             # a small calendar: the delivery and the two accepted deliveries it is compared with
             mini = [adjusted] + [cat.Delivery(adjusted.scope, d, None, None)
                                  for d in (adjusted.prev_date, adjusted.prev2_date) if d]
-            return measure(db, catalogue, dataset, mini, ph)
+            log(f"  re-measuring {adjusted.scope} {adjusted.as_of_date} against its last accepted baseline ...")
+            return measure(db, catalogue, dataset, mini, ph, quiet=True)
 
         verdicts, decisions = judge(catalogue, dataset, deliveries, targets, released, measured, remeasure)
 

@@ -1,0 +1,9 @@
+# Metrics agent (agent/) - Python 3.10+. Shares the warehouse client of the delivery gate.
+-r ../qa/requirements.txt
+# dbt Core, only to run `dbt parse` locally (it writes target/semantic_manifest.json - the agent's catalogue)
+dbt-core>=1.10,<1.11
+dbt-databricks>=1.10,<1.11
+# UI
+streamlit>=1.37
+# optional: Claude as translator / narrator (only used when ANTHROPIC_API_KEY is set)
+anthropic>=0.40

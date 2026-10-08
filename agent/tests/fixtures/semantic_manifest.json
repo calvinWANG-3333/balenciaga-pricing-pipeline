@@ -1,0 +1,1156 @@
+{
+ "metrics": [
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "hidden": true
+     }
+    }
+   },
+   "description": "Sum of market LFL change x number of like-for-like products.",
+   "filter": null,
+   "label": "LFL change x LFL products (building block)",
+   "metadata": null,
+   "name": "lfl_weighted_numerator",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "lfl_change_x_products"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "lfl_change_x_products"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "hidden": true
+     }
+    }
+   },
+   "description": "Number of like-for-like products.",
+   "filter": null,
+   "label": "LFL products (building block)",
+   "metadata": null,
+   "name": "lfl_weighted_denominator",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "lfl_products"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "lfl_products"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "product_label"
+      ],
+      "default_time": "latest",
+      "synonyms": [
+       "hero change",
+       "hero price change",
+       "week on week",
+       "weekly change",
+       "change vs last week"
+      ],
+      "unit": "percent"
+     }
+    }
+   },
+   "description": "Average change of hero prices vs the previous weekly delivery.",
+   "filter": null,
+   "label": "Hero price change vs previous delivery",
+   "metadata": null,
+   "name": "hero_price_change",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "hero_change_vs_previous"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "hero_change_vs_previous"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "macro_category"
+      ],
+      "default_time": "latest",
+      "synonyms": [
+       "share of products increased",
+       "share increased",
+       "what share",
+       "how many products increased",
+       "proportion increased",
+       "percentage of products"
+      ],
+      "unit": "percent"
+     }
+    }
+   },
+   "description": "Share of like-for-like products whose price went up vs the previous month-end.",
+   "filter": null,
+   "label": "Share of products with a price increase",
+   "metadata": null,
+   "name": "category_share_increased",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "share_of_products_increased"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "share_of_products_increased"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "macro_category"
+      ],
+      "default_time": "latest",
+      "synonyms": [
+       "like-for-like",
+       "like for like",
+       "lfl",
+       "price increase",
+       "price change",
+       "price evolution",
+       "inflation",
+       "increase",
+       "how much did prices"
+      ],
+      "unit": "percent"
+     }
+    }
+   },
+   "description": "Monthly like-for-like price change. Per market: the mean change of the products priced at both month-ends. Across markets: the average of the markets' changes (every market counts once) - the Macro headline.\n",
+   "filter": null,
+   "label": "Like-for-like price change (market-weighted)",
+   "metadata": null,
+   "name": "category_lfl_change",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "market_lfl_change"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "market_lfl_change"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "macro_category"
+      ],
+      "default_time": "latest",
+      "synonyms": [
+       "product-weighted",
+       "product weighted",
+       "weighted by products",
+       "pooled"
+      ],
+      "unit": "percent"
+     }
+    }
+   },
+   "description": "Like-for-like change pooling every product-market pair: markets with more products weigh more. Compare with the market-weighted headline to see whether big and small markets moved differently.\n",
+   "filter": null,
+   "label": "Like-for-like price change (product-weighted)",
+   "metadata": null,
+   "name": "category_lfl_change_product_weighted",
+   "time_granularity": null,
+   "type": "ratio",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": {
+     "alias": null,
+     "filter": null,
+     "name": "lfl_weighted_denominator",
+     "offset_to_grain": null,
+     "offset_window": null
+    },
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "lfl_change_x_products"
+     },
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "lfl_products"
+     }
+    ],
+    "measure": null,
+    "metrics": [],
+    "numerator": {
+     "alias": null,
+     "filter": null,
+     "name": "lfl_weighted_numerator",
+     "offset_to_grain": null,
+     "offset_window": null
+    },
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "market"
+      ],
+      "default_time": "latest",
+      "synonyms": [
+       "hero increases",
+       "how many heroes increased",
+       "hero price increases"
+      ],
+      "unit": "count"
+     }
+    }
+   },
+   "description": "Number of hero x market cells whose price went up vs the previous delivery.",
+   "filter": null,
+   "label": "Hero price increases",
+   "metadata": null,
+   "name": "hero_price_increases",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "hero_price_increase_cells"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "hero_price_increase_cells"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "market"
+      ],
+      "default_time": "all",
+      "synonyms": [
+       "number of price changes",
+       "how many price changes",
+       "price change events",
+       "how many changes",
+       "price changes",
+       "how many price increases",
+       "how many price decreases",
+       "number of price increases",
+       "number of price decreases",
+       "how many increases",
+       "how many decreases",
+       "how many products changed price"
+      ],
+      "unit": "count"
+     }
+    }
+   },
+   "description": "Number of price change events (a product's price changing in a market).",
+   "filter": null,
+   "label": "Price changes",
+   "metadata": null,
+   "name": "price_change_count",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "price_change_events"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "price_change_events"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "macro_category"
+      ],
+      "default_time": "latest",
+      "point_in_time": true,
+      "synonyms": [
+       "number of products",
+       "how many products",
+       "product count",
+       "assortment",
+       "assortment size",
+       "products listed"
+      ],
+      "unit": "count"
+     }
+    }
+   },
+   "description": "Number of priced products listed at the month-end Macro delivery.",
+   "filter": null,
+   "label": "Products listed",
+   "metadata": null,
+   "name": "category_product_count",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "products_listed"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "products_listed"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "macro_category",
+       "market"
+      ],
+      "default_time": "latest",
+      "point_in_time": true,
+      "requires": [
+       "market"
+      ],
+      "synonyms": [
+       "median price",
+       "typical price",
+       "median"
+      ],
+      "unit": "currency"
+     }
+    }
+   },
+   "description": "Median price of a category in a market, in that market's local currency.",
+   "filter": null,
+   "label": "Median price (local currency)",
+   "metadata": null,
+   "name": "category_median_price",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "category_median_price_local"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "category_median_price_local"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "product_label",
+       "market"
+      ],
+      "default_time": "latest",
+      "point_in_time": true,
+      "requires": [
+       "market"
+      ],
+      "synonyms": [
+       "hero price",
+       "price of",
+       "how much is",
+       "how much does",
+       "cost",
+       "costs"
+      ],
+      "unit": "currency"
+     }
+    }
+   },
+   "description": "Price of a hero product in a market's local currency, as delivered every Tuesday.",
+   "filter": null,
+   "label": "Hero product price",
+   "metadata": null,
+   "name": "hero_price",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "hero_price_local"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "hero_price_local"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  },
+  {
+   "config": {
+    "meta": {
+     "agent": {
+      "default_group_by": [
+       "change_direction"
+      ],
+      "default_time": "all",
+      "synonyms": [
+       "average change",
+       "average price change",
+       "size of price changes",
+       "average size",
+       "size of price",
+       "average increase",
+       "average decrease",
+       "average price increase",
+       "average price decrease",
+       "how big"
+      ],
+      "unit": "percent"
+     }
+    }
+   },
+   "description": "Average percentage change of the individual price change events.",
+   "filter": null,
+   "label": "Average size of a price change",
+   "metadata": null,
+   "name": "average_price_change",
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "price_change_pct"
+     }
+    ],
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "price_change_pct"
+    },
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   }
+  }
+ ],
+ "project_configuration": {
+  "dsi_package_version": {
+   "major_version": "0",
+   "minor_version": "9",
+   "patch_version": "0"
+  },
+  "metadata": null,
+  "time_spine_table_configurations": [
+   {
+    "column_name": "date_day",
+    "grain": "day",
+    "location": "dbt_rwang_semantic.metricflow_time_spine"
+   }
+  ],
+  "time_spines": [
+   {
+    "custom_granularities": [],
+    "node_relation": {
+     "alias": "metricflow_time_spine",
+     "database": null,
+     "relation_name": "dbt_rwang_semantic.metricflow_time_spine",
+     "schema_name": "dbt_rwang_semantic"
+    },
+    "primary_column": {
+     "name": "date_day",
+     "time_granularity": "day"
+    }
+   }
+  ]
+ },
+ "saved_queries": [],
+ "semantic_models": [
+  {
+   "config": {
+    "meta": {}
+   },
+   "defaults": {
+    "agg_time_dimension": "delivery_date"
+   },
+   "description": "Weekly Micro delivery - one row per (delivery date, hero product, weekly market).",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "delivery_date",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day",
+      "validity_params": null
+     }
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": "Hero id (HERO-01 ... HERO-08).",
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "pointer_id",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": "Hero product name.",
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "product_label",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": "ISO-3 market code.",
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "market",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "currency_code",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": "first_delivery, unchanged, price_increase, price_decrease, no_valid_price, not_found, page_error.",
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "price_status",
+     "type": "categorical",
+     "type_params": null
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "micro_row_id",
+     "label": null,
+     "metadata": null,
+     "name": "hero_cell",
+     "role": null,
+     "type": "primary"
+    }
+   ],
+   "label": null,
+   "measures": [
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": "Average hero price in local currency (one row = one product x market x date).",
+     "expr": "price_local",
+     "label": null,
+     "metadata": null,
+     "name": "hero_price_local",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": "Average change vs the previous delivery.",
+     "expr": "change_vs_previous_pct",
+     "label": null,
+     "metadata": null,
+     "name": "hero_change_vs_previous",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": "Hero x market cells whose price went up vs the previous delivery.",
+     "expr": "case when price_status = 'price_increase' then 1 else 0 end",
+     "label": null,
+     "metadata": null,
+     "name": "hero_price_increase_cells",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "name": "hero_prices",
+   "node_relation": {
+    "alias": "pub_micro__hero_prices_weekly",
+    "database": null,
+    "relation_name": "dbt_rwang_published.pub_micro__hero_prices_weekly",
+    "schema_name": "dbt_rwang_published"
+   },
+   "primary_entity": null
+  },
+  {
+   "config": {
+    "meta": {}
+   },
+   "defaults": {
+    "agg_time_dimension": "report_month"
+   },
+   "description": "Monthly Macro delivery - one row per (month, market, macro category).",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "report_month",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "month",
+      "validity_params": null
+     }
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "market",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": "Bags, Small Leather Goods, Shoes, Accessories.",
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "macro_category",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "currency_code",
+     "type": "categorical",
+     "type_params": null
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "macro_row_id",
+     "label": null,
+     "metadata": null,
+     "name": "category_month",
+     "role": null,
+     "type": "primary"
+    }
+   ],
+   "label": null,
+   "measures": [
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": "Like-for-like change of a market (mean of product changes); averaged over markets it is the market-weighted headline.",
+     "expr": "lfl_mean_change",
+     "label": null,
+     "metadata": null,
+     "name": "market_lfl_change",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": "LFL change weighted by the number of like-for-like products (numerator of the product-weighted change).",
+     "expr": "lfl_mean_change * lfl_n_products",
+     "label": null,
+     "metadata": null,
+     "name": "lfl_change_x_products",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": "Like-for-like products (denominator of the product-weighted change).",
+     "expr": "case when lfl_mean_change is not null then lfl_n_products else 0 end",
+     "label": null,
+     "metadata": null,
+     "name": "lfl_products",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "n_products",
+     "label": null,
+     "metadata": null,
+     "name": "products_listed",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "median_price",
+     "label": null,
+     "metadata": null,
+     "name": "category_median_price_local",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "lfl_share_increased",
+     "label": null,
+     "metadata": null,
+     "name": "share_of_products_increased",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "name": "category_monthly",
+   "node_relation": {
+    "alias": "pub_macro__category_monthly",
+    "database": null,
+    "relation_name": "dbt_rwang_published.pub_macro__category_monthly",
+    "schema_name": "dbt_rwang_published"
+   },
+   "primary_entity": null
+  },
+  {
+   "config": {
+    "meta": {}
+   },
+   "defaults": {
+    "agg_time_dimension": "changed_on_crawl_date"
+   },
+   "description": "One row per price change event (product-market x crawl where the new price first appeared).",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "changed_on_crawl_date",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day",
+      "validity_params": null
+     }
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "market",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "macro_category",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": "increase or decrease.",
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "change_direction",
+     "type": "categorical",
+     "type_params": null
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "price_change_id",
+     "label": null,
+     "metadata": null,
+     "name": "price_change",
+     "role": null,
+     "type": "primary"
+    }
+   ],
+   "label": null,
+   "measures": [
+    {
+     "agg": "count",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "price_change_id",
+     "label": null,
+     "metadata": null,
+     "name": "price_change_events",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "change_pct",
+     "label": null,
+     "metadata": null,
+     "name": "price_change_pct",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "name": "price_changes",
+   "node_relation": {
+    "alias": "pub_fct_price_changes",
+    "database": null,
+    "relation_name": "dbt_rwang_published.pub_fct_price_changes",
+    "schema_name": "dbt_rwang_published"
+   },
+   "primary_entity": null
+  }
+ ]
+}

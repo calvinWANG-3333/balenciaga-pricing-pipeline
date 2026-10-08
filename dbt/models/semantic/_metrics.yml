@@ -1,0 +1,182 @@
+version: 2
+
+# ==================================================================================================
+# Governed metrics. The `meta.agent` block is read by the metrics agent (agent/):
+#   synonyms        words a question may use for this metric
+#   unit            percent | currency | count  (how to format the answer)
+#   requires        dimensions the question MUST fix (group by or filter) for the number to make sense.
+#                   Prices are in local currency: averaging EUR with JPY is meaningless, so every
+#                   currency metric requires `market`. The agent refuses rather than add up currencies.
+#   default_group_by  dimensions used when the question names none
+#   default_time    latest (the latest published period) | all (all published history), when the
+#                   question names no period
+#   point_in_time   a level, not a flow (a price, a count of listed products): over a period the agent
+#                   uses the latest delivery instead of adding or averaging deliveries
+#   hidden          building block of another metric, never answered on its own
+# ==================================================================================================
+
+metrics:
+
+  # ------------------------------------------------------------------------------------------ Micro
+  - name: hero_price
+    label: Hero product price
+    description: Price of a hero product in a market's local currency, as delivered every Tuesday.
+    type: simple
+    type_params: {measure: hero_price_local}
+    config:
+      meta:
+        agent:
+          synonyms: [hero price, price of, how much is, how much does, cost, costs]
+          unit: currency
+          requires: [market]
+          default_group_by: [product_label, market]
+          default_time: latest
+          point_in_time: true
+
+  - name: hero_price_change
+    label: Hero price change vs previous delivery
+    description: Average change of hero prices vs the previous weekly delivery.
+    type: simple
+    type_params: {measure: hero_change_vs_previous}
+    config:
+      meta:
+        agent:
+          synonyms: [hero change, hero price change, week on week, weekly change, change vs last week]
+          unit: percent
+          default_group_by: [product_label]
+          default_time: latest
+
+  - name: hero_price_increases
+    label: Hero price increases
+    description: Number of hero x market cells whose price went up vs the previous delivery.
+    type: simple
+    type_params: {measure: hero_price_increase_cells}
+    config:
+      meta:
+        agent:
+          synonyms: [hero increases, how many heroes increased, hero price increases]
+          unit: count
+          default_group_by: [market]
+          default_time: latest
+
+  # ------------------------------------------------------------------------------------------ Macro
+  - name: category_lfl_change
+    label: Like-for-like price change (market-weighted)
+    description: >
+      Monthly like-for-like price change. Per market: the mean change of the products priced at both
+      month-ends. Across markets: the average of the markets' changes (every market counts once) - the
+      Macro headline.
+    type: simple
+    type_params: {measure: market_lfl_change}
+    config:
+      meta:
+        agent:
+          synonyms: [like-for-like, like for like, lfl, price increase, price change, price evolution, inflation, increase, how much did prices]
+          unit: percent
+          default_group_by: [macro_category]
+          default_time: latest
+
+  - name: category_lfl_change_product_weighted
+    label: Like-for-like price change (product-weighted)
+    description: >
+      Like-for-like change pooling every product-market pair: markets with more products weigh more.
+      Compare with the market-weighted headline to see whether big and small markets moved differently.
+    type: ratio
+    type_params:
+      numerator: lfl_weighted_numerator
+      denominator: lfl_weighted_denominator
+    config:
+      meta:
+        agent:
+          synonyms: [product-weighted, product weighted, weighted by products, pooled]
+          unit: percent
+          default_group_by: [macro_category]
+          default_time: latest
+
+  # building blocks of the ratio above (a ratio metric divides two metrics); hidden from the agent
+  - name: lfl_weighted_numerator
+    label: LFL change x LFL products (building block)
+    description: Sum of market LFL change x number of like-for-like products.
+    type: simple
+    type_params: {measure: lfl_change_x_products}
+    config:
+      meta:
+        agent: {hidden: true}
+
+  - name: lfl_weighted_denominator
+    label: LFL products (building block)
+    description: Number of like-for-like products.
+    type: simple
+    type_params: {measure: lfl_products}
+    config:
+      meta:
+        agent: {hidden: true}
+
+  - name: category_product_count
+    label: Products listed
+    description: Number of priced products listed at the month-end Macro delivery.
+    type: simple
+    type_params: {measure: products_listed}
+    config:
+      meta:
+        agent:
+          synonyms: [number of products, how many products, product count, assortment, assortment size, products listed]
+          unit: count
+          default_group_by: [macro_category]
+          default_time: latest
+          point_in_time: true
+
+  - name: category_median_price
+    label: Median price (local currency)
+    description: Median price of a category in a market, in that market's local currency.
+    type: simple
+    type_params: {measure: category_median_price_local}
+    config:
+      meta:
+        agent:
+          synonyms: [median price, typical price, median]
+          unit: currency
+          requires: [market]
+          default_group_by: [macro_category, market]
+          default_time: latest
+          point_in_time: true
+
+  - name: category_share_increased
+    label: Share of products with a price increase
+    description: Share of like-for-like products whose price went up vs the previous month-end.
+    type: simple
+    type_params: {measure: share_of_products_increased}
+    config:
+      meta:
+        agent:
+          synonyms: [share of products increased, share increased, what share, how many products increased, proportion increased, percentage of products]
+          unit: percent
+          default_group_by: [macro_category]
+          default_time: latest
+
+  # ------------------------------------------------------------------------------------- Price changes
+  - name: price_change_count
+    label: Price changes
+    description: Number of price change events (a product's price changing in a market).
+    type: simple
+    type_params: {measure: price_change_events}
+    config:
+      meta:
+        agent:
+          synonyms: [number of price changes, how many price changes, price change events, how many changes, price changes, how many price increases, how many price decreases, number of price increases, number of price decreases, how many increases, how many decreases, how many products changed price]
+          unit: count
+          default_group_by: [market]
+          default_time: all
+
+  - name: average_price_change
+    label: Average size of a price change
+    description: Average percentage change of the individual price change events.
+    type: simple
+    type_params: {measure: price_change_pct}
+    config:
+      meta:
+        agent:
+          synonyms: [average change, average price change, size of price changes, average size, size of price, average increase, average decrease, average price increase, average price decrease, how big]
+          unit: percent
+          default_group_by: [change_direction]
+          default_time: all

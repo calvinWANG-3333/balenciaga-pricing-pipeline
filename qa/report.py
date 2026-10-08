@@ -35,7 +35,7 @@ def print_report(dataset: str, run_id: str, verdicts: dict[Delivery, list[Result
 
 def markdown_report(dataset: str, run_id: str, verdicts: dict[Delivery, list[Result]],
                     decisions: dict[Delivery, str]) -> str:
-    lines = [f"# Delivery gate report", "", f"- dataset: `{dataset}`", f"- run: `{run_id}`", "",
+    lines = ["# Delivery gate report", "", f"- dataset: `{dataset}`", f"- run: `{run_id}`", "",
              "| Scope | Delivery | Decision | Pass | Warn | Fail |", "|---|---|---|---:|---:|---:|"]
     for delivery in sorted(verdicts, key=lambda d: (d.scope, d.as_of_date)):
         c = Counter(r.status for r in verdicts[delivery])
