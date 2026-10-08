@@ -1,0 +1,60 @@
+version: 2
+
+# Exposures declare who CONSUMES the marts. They appear in the lineage graph as the final nodes, so a
+# change to an upstream model shows which dashboards and tools it can break (`dbt ls -s +exposure:...`).
+
+exposures:
+
+  - name: micro_hero_price_tracker
+    label: Micro - Hero price tracker
+    type: dashboard
+    maturity: medium
+    description: >
+      Weekly (Tuesday) price of each Balenciaga hero product in the 8 weekly markets, with the change vs
+      the previous delivery and the stale / carried-forward / not-found flags. Evidence.dev page.
+    owner: {name: Calvin Wang}
+    depends_on:
+      - ref('mart_micro__hero_prices_weekly')
+      - ref('dim_product')
+      - ref('dim_market')
+
+  - name: macro_category_monitor
+    label: Macro - Category monitor
+    type: dashboard
+    maturity: medium
+    description: >
+      Monthly price levels (min / median / mean / max) and like-for-like change per macro category and
+      market, plus the global market-weighted headline. Evidence.dev page.
+    owner: {name: Calvin Wang}
+    depends_on:
+      - ref('mart_macro__category_monthly')
+      - ref('mart_macro__category_monthly_global')
+      - ref('dim_market')
+
+  - name: incident_replay_report
+    label: Incident replay - legacy vs point-in-time
+    type: analysis
+    maturity: high
+    description: >
+      Side-by-side replay of the shared-catalogue design against the point-in-time design: which
+      deliveries were wrong, in which markets, by how much. Evidence.dev page.
+    owner: {name: Calvin Wang}
+    depends_on:
+      - ref('qa_incident__legacy_vs_point_in_time')
+      - ref('fct_catalogue_as_of')
+
+  - name: metrics_agent
+    label: Metrics Q&A agent
+    type: application
+    maturity: low
+    description: >
+      Natural-language Q&A over governed metrics (Phase 5). Reads only the marts, through a fixed set of
+      reviewed SQL templates.
+    owner: {name: Calvin Wang}
+    depends_on:
+      - ref('fct_price_observations')
+      - ref('fct_price_changes')
+      - ref('fct_catalogue_as_of')
+      - ref('mart_micro__hero_prices_weekly')
+      - ref('mart_macro__category_monthly')
+      - ref('mart_macro__category_monthly_global')

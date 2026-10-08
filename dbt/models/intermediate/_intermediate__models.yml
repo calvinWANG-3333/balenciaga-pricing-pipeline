@@ -109,6 +109,10 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [as_of_date, object_id]
+      # THE KILLER TEST, on the new design: must find no violation
+      - serves_latest_eligible_crawl:
+          arguments:
+            crawl_date_column: presence_crawl_date
     columns:
       - name: catalogue_row_id
         data_tests: [unique, not_null]
@@ -121,3 +125,12 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [as_of_date, object_id]
+      # THE KILLER TEST, on the old design: thresholds inverted - the test FAILS the build if it finds
+      # NOTHING wrong, i.e. it proves on every run that this check would have caught the incident
+      - serves_latest_eligible_crawl:
+          name: killer_test_would_have_caught_the_legacy_incident
+          arguments:
+            crawl_date_column: legacy_crawl_date
+          config:
+            warn_if: "= 0"
+            error_if: "= 0"
