@@ -97,6 +97,7 @@ models:
       - {name: object_id, data_type: string}
       - {name: sku, data_type: string}
       - {name: market, data_type: string}
+      - {name: macro_category, data_type: string, description: "Macro category of the product (null = out of Macro scope)."}
       - {name: currency_code, data_type: string}
       - {name: changed_on_crawl_date, data_type: date}
       - {name: price_before, data_type: "decimal(18,2)"}

@@ -123,6 +123,9 @@ models:
     published:
       +materialized: view
       +schema: published
+    semantic:
+      +materialized: table
+      +schema: semantic
 
 seeds:
   balenciaga_pricing:

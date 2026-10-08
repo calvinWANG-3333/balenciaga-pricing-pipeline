@@ -15,6 +15,8 @@ models/
   marts/health/        ops source (written by the delivery gate) + mart_data_health__deliveries (view)
   marts/_exposures.yml dashboards and the metrics agent - they read the published layer
   published/           pub_* views: marts filtered to deliveries released by the gate (write-audit-publish)
+  semantic/            semantic models + governed metrics (MetricFlow spec) on the published views, time spine;
+                       `dbt parse` compiles them to target/semantic_manifest.json, read by ../agent/
   quality/raw/         qa_raw__quarantined_lines, qa_raw__repaired_values, qa_raw__file_profile
   quality/intermediate qa_int__price_scale_outliers
   quality/incident/    qa_incident__legacy_vs_point_in_time  (the production incident, replayed and measured)
