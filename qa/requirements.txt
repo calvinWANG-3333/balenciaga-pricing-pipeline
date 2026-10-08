@@ -1,0 +1,5 @@
+# Delivery gate (qa/) - Python 3.10+
+databricks-sql-connector>=3.0,<5
+pyyaml>=6.0
+# development
+pytest>=8.0

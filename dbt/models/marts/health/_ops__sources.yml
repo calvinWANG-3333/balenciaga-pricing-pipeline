@@ -1,0 +1,29 @@
+version: 2
+
+# Tables written by the delivery gate (qa/), not by dbt. dbt creates them empty (on-run-start, see
+# macros/ops_tables.sql) and reads them back here. They are append-only audit logs.
+sources:
+  - name: ops
+    description: Operational tables of the delivery gate (write-audit-publish).
+    schema: "{{ 'ops' if target.name == 'prod' else target.schema ~ '_ops' }}"
+    tables:
+      - name: qa_check_results
+        description: One row per (gate run, delivery, check, subject). The full audit trail of every check.
+        columns:
+          - name: status
+            data_tests:
+              - accepted_values:
+                  arguments: {values: [pass, warn, fail, skip]}
+          - name: severity
+            data_tests:
+              - accepted_values:
+                  arguments: {values: [block, warn]}
+      - name: delivery_releases
+        description: >
+          One row per release decision. A delivery (scope, as_of_date) is visible to BI only once it has a
+          row here. Written by the gate when a delivery passes, or by a human forcing a release (with a reason).
+        columns:
+          - name: decision
+            data_tests:
+              - accepted_values:
+                  arguments: {values: [PASS, WARN, BLOCK]}

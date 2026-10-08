@@ -12,7 +12,9 @@ models/
                        fct_catalogue_as_of                       - star schema, enforced contracts
   marts/micro/         mart_micro__hero_prices_weekly            - weekly hero prices (complete grid, statuses)
   marts/macro/         mart_macro__category_monthly(_global)     - monthly levels + like-for-like change
-  marts/_exposures.yml dashboards and the metrics agent that read the marts
+  marts/health/        ops source (written by the delivery gate) + mart_data_health__deliveries (view)
+  marts/_exposures.yml dashboards and the metrics agent - they read the published layer
+  published/           pub_* views: marts filtered to deliveries released by the gate (write-audit-publish)
   quality/raw/         qa_raw__quarantined_lines, qa_raw__repaired_values, qa_raw__file_profile
   quality/intermediate qa_int__price_scale_outliers
   quality/incident/    qa_incident__legacy_vs_point_in_time  (the production incident, replayed and measured)
@@ -21,7 +23,8 @@ seeds/                 ly_category_tree, ly_category_rules (rule engine), micro_
 tests/                 singular tests: row conservation, answer-key recall, point-in-time guarantees, SCD2 integrity,
                        marts = projections of the point-in-time catalogue
 tests/generic/         serves_latest_eligible_crawl - the killer test, run on the new AND the legacy design
-macros/                generate_schema_name, data-quality helpers driven by vars
+macros/                generate_schema_name, data-quality helpers driven by vars,
+                       ops_tables (on-run-start: creates the gate's append-only audit tables)
 ```
 
 ```bash
@@ -29,3 +32,6 @@ dbt deps
 dbt build                 # models + data tests + unit tests
 dbt source freshness      # warns 8 days after the last bronze load
 ```
+
+After `dbt build`, the delivery gate (`../qa/`, see `docs/07_delivery_gate.md`) audits each delivery and
+releases those that pass; BI reads only `published`.

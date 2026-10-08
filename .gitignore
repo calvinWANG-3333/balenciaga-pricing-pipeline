@@ -18,8 +18,12 @@ dbt/.user.yml
 # ---- python ----
 __pycache__/
 *.pyc
+.pytest_cache/
 .venv/
 venv/
+
+# ---- delivery gate reports (written on demand with --report) ----
+qa/reports/
 
 # ---- BI build output (Evidence) ----
 bi/.evidence/
