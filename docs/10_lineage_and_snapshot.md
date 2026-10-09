@@ -14,7 +14,7 @@ dbt parse ──► manifest.json ──► tools/lineage/extract.py ──► g
    git archive <phase commit>                       one graph per phase (committed)
    (tools/lineage/collect.py)                       + current.json (today)
 
-production warehouse ──► public models only ──► tools/snapshot/export.py ──► bi/sources/pricing/*.csv + bi/snapshot_manifest.json
+production warehouse ──► public models only ──► tools/snapshot/export.py ──► bi/src/data/*.csv + bi/src/data/snapshot_manifest.json
 ```
 
 | Tool | Reads | Writes | Run |
@@ -188,9 +188,12 @@ git checkout main && git pull
 git checkout -b phase-6b/bi-snapshot
 cd dbt && dbt parse && cd ..                   # the export reads access + contracts from the manifest
 QA_SCHEMA_PREFIX="" python -m tools.snapshot.export
-cat bi/snapshot_manifest.json | head -12       # "schema_prefix": "(production)", 16 released deliveries
+cat bi/src/data/snapshot_manifest.json | head -12       # "schema_prefix": "(production)", 16 released deliveries
 git add bi/ && git commit -m "data: BI snapshot from production" && git push -u origin phase-6b/bi-snapshot
 ```
+
+> Phase 6c moved the snapshot from `bi/sources/pricing/` to `bi/src/data/`, where the BI site reads it
+> (see [11_bi_pages.md](11_bi_pages.md)); `snapshot.yml` holds the path, so the command is unchanged.
 
 This PR changes only CSV files. Slim CI finds no modified dbt node, so it builds nothing, and the
 evaluator still runs. That is the right behaviour.
@@ -203,7 +206,7 @@ Open `site/assets/lineage/lineage_full.svg` and `lineage_p2.svg` … `lineage_p6
 **Checkpoint – Phase 6b is done when:**
 - [ ] after step 0, `git log -1` on `main` shows 7f85f4d and `git status` lists only the 6b files
 - [ ] PR 1 merged, deploy green, `workspace.marts.mart_data_health__check_results` exists
-- [ ] PR 2 merged, `bi/snapshot_manifest.json` says production, 10 tables
+- [ ] PR 2 merged, `bi/src/data/snapshot_manifest.json` says production, 10 tables
 - [ ] `python -m pytest tools/tests agent/tests qa/tests` = 83 passed
 
 ---

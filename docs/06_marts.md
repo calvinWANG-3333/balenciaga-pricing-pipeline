@@ -77,7 +77,7 @@ model's columns and data types with the YAML and **fails the build** on any diff
 an extra one, `decimal(18,2)` that became `double`. This is why every mart ends with explicit `cast(...)`:
 the SQL states the types the contract promises.
 
-**Why it matters here.** Evidence dashboards and the metrics agent (Phase 5) read these tables. A silent
+**Why it matters here.** The BI dashboards and the metrics agent (Phase 5) read these tables. A silent
 type change (e.g. a price turning into a float) would break them without any error in dbt. With a
 contract, the break happens in dbt, before anything is published.
 
