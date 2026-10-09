@@ -1,0 +1,5 @@
+# What GitHub Actions installs. Pinned to the same minor versions as local development.
+-r ../qa/requirements.txt                # delivery gate: Databricks SQL connector, pyyaml, truststore, pytest
+dbt-core>=1.10.6,<1.11                   # 1.10.6+ is required by dbt-project-evaluator 1.4
+dbt-databricks>=1.10,<1.11
+ruff>=0.6,<1

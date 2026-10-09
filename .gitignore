@@ -7,6 +7,8 @@ data/
 .env
 *.env
 profiles.yml
+# the CI profile holds only env_var() references, no secret: it is committed on purpose
+!ci/profiles.yml
 
 # ---- dbt artifacts ----
 dbt/target/

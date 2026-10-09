@@ -1,0 +1,46 @@
+# When a pull request is closed (merged or not), drop its throw-away CI schemas (ci_pr_<number>_*).
+# The macro refuses any prefix that does not start with ci_pr_, so it can never touch dev or production.
+
+name: CI cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  DBT_PROFILES_DIR: ${{ github.workspace }}/ci
+
+jobs:
+  drop-ci-schemas:
+    name: Drop ci_pr_${{ github.event.pull_request.number }}_* schemas
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DBT_CI_SCHEMA: ci_pr_${{ github.event.pull_request.number }}
+      DATABRICKS_SERVER_HOSTNAME: ${{ secrets.DATABRICKS_SERVER_HOSTNAME }}
+      DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            ci/requirements.txt
+            qa/requirements.txt
+
+      - name: Install
+        run: pip install -r ci/requirements.txt
+
+      - name: Drop the schemas
+        working-directory: dbt
+        run: |
+          dbt deps
+          dbt run-operation drop_ci_schemas --args "{prefix: ${DBT_CI_SCHEMA}}" --target ci

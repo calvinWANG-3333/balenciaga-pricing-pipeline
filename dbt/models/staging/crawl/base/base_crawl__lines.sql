@@ -5,8 +5,8 @@
   Purpose : give every line a stable id and pull every JSON field out as TEXT. No cleaning, no
             casting decisions, no filtering - those belong to stg_crawl__product_observations.
 
-  Why a separate "base" model? The staging model below is long; splitting "extract" from "clean"
-  keeps each one readable, and lets the unit tests feed the cleaning logic hand-written rows.
+  Why a separate "base" model? The staging model below is long; splitting extraction from
+  cleaning keeps each one readable, and lets the unit tests feed the cleaning logic hand-written rows.
 
   get_json_object() returns every scalar as a STRING, whether the JSON held "2490" or 2490. That is
   what we want: types are decided later, deliberately, not guessed here.

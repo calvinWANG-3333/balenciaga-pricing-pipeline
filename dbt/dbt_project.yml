@@ -20,6 +20,12 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# dbt-project-evaluator (best-practice checks on the DAG itself) overrides a few dbt macros so it can
+# run on Databricks/Spark. It only RUNS in CI (see the enabled flags at the bottom of this file).
+dispatch:
+  - macro_namespace: dbt
+    search_order: ["dbt_project_evaluator", "dbt"]
+
 # --------------------------------------------------------------------------------------------------
 # Business configuration that the SQL reads. Kept here (version-controlled, reviewed in PRs) rather
 # than hard-coded inside models, so changing a rule never means hunting through SQL.
@@ -102,6 +108,20 @@ vars:
     # emitted by the intermediate layer (needs price history), not by staging
     price_scale_outlier: quarantine
 
+  # ------------------------------------------------------------------------------------------------
+  # dbt-project-evaluator: the project's own conventions, so the checks judge us by our rules.
+  #   marts      fct_/dim_ = the shared star schema; mart_ = a client deliverable at report grain
+  #   published  pub_ = the released, public interface (write-audit-publish)
+  #   quality    qa_ = the QA lane, which reads staging on purpose to see what the marts filter out
+  # ------------------------------------------------------------------------------------------------
+  dbt_project_evaluator:
+    model_types: ["base", "staging", "intermediate", "marts", "published", "quality", "other"]
+    marts_prefixes: ["fct_", "dim_", "mart_"]
+    published_folder_name: "published"
+    published_prefixes: ["pub_"]
+    quality_folder_name: "quality"
+    quality_prefixes: ["qa_"]
+
 # --------------------------------------------------------------------------------------------------
 # Materialization + schema per layer (directory-based config). Override per model only with a
 # written reason in that model's config block.
@@ -123,14 +143,44 @@ models:
     published:
       +materialized: view
       +schema: published
+      # the public interface of the project: BI, the metrics agent and the exposures read only these.
+      # Public => contract enforced (names + types checked at build) and every column documented.
+      +access: public
+      +contract:
+        enforced: true
     semantic:
       +materialized: table
       +schema: semantic
+  # best-practice checks: built only when DBT_PROJECT_EVALUATOR_ENABLED=true (the CI job), never in
+  # Studio or production, so they cost nothing outside a pull request
+  dbt_project_evaluator:
+    +enabled: "{{ (env_var('DBT_PROJECT_EVALUATOR_ENABLED', 'false') | lower == 'true') | as_bool }}"
+    +schema: project_evaluator
+    marts:
+      structure:
+        # one properties file per LAYER (models/intermediate/_intermediate__models.yml ...) instead of one
+        # per folder: a deliberate choice for a 37-model project, so tests sit next to their layer, not
+        # next to each folder. Every other structure rule stays on.
+        fct_test_directories:
+          +enabled: false
 
 seeds:
   balenciaga_pricing:
     +schema: seeds
+    # our documented exceptions to the evaluator's rules (seeds/dbt_project_evaluator_exceptions.csv)
+    dbt_project_evaluator_exceptions:
+      +enabled: "{{ (env_var('DBT_PROJECT_EVALUATOR_ENABLED', 'false') | lower == 'true') | as_bool }}"
+      +schema: project_evaluator
+  dbt_project_evaluator:
+    +enabled: "{{ (env_var('DBT_PROJECT_EVALUATOR_ENABLED', 'false') | lower == 'true') | as_bool }}"
+    +schema: project_evaluator
+    # replaced by ours
+    dbt_project_evaluator_exceptions:
+      +enabled: false
 
 data_tests:
   balenciaga_pricing:
     +severity: error
+  dbt_project_evaluator:
+    +enabled: "{{ (env_var('DBT_PROJECT_EVALUATOR_ENABLED', 'false') | lower == 'true') | as_bool }}"
+    +severity: "{{ env_var('DBT_PROJECT_EVALUATOR_SEVERITY', 'warn') }}"

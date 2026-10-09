@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_ops__qa_check_results
+    description: >
+      Grain - one row per (gate run, dataset, delivery, check, subject). The delivery gate's audit trail,
+      exposed to dbt models. Empty until the gate has run once in this environment.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [run_id, dataset, scope, as_of_date, check_id, subject]
+    columns:
+      - name: run_id
+        data_tests: [not_null]
+
+  - name: stg_ops__delivery_releases
+    description: >
+      Grain - one row per release decision. A delivery is visible to BI once it has a row here.
+    columns:
+      - name: release_id
+        data_tests: [unique, not_null]

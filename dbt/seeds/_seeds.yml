@@ -79,3 +79,6 @@ seeds:
 
 # Seed hygiene: seeds are loaded through SQL INSERT statements, so keep them free of apostrophes and
 # backslashes (regex word boundaries are written as (^|[^a-z]) ... ([^a-z]|$) instead of \b).
+
+  # dbt_project_evaluator_exceptions.csv (our documented exceptions to the evaluator's rules) is not
+  # described here: the package already declares a seed of that name, and a resource can be described once.

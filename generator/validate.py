@@ -151,8 +151,8 @@ def main(argv=None):
     check("F01 duplicate file is byte-identical to its original", sha[dup["file_name"]] == sha[orig])
     stale = next(b for b in batches if b["batch_type"] == "stale_reimport")
     src = next(b for b in primary if b["crawl_date"] == stale["crawl_date"])
-    stale_created = {json.loads(l)["createdAt"] for l in files[stale["file_name"]]}
-    src_created = {json.loads(l)["createdAt"] for l in files[src["file_name"]]}
+    stale_created = {json.loads(line)["createdAt"] for line in files[stale["file_name"]]}
+    src_created = {json.loads(line)["createdAt"] for line in files[src["file_name"]]}
     check("F02 stale re-import differs byte-wise (so a file hash alone will NOT catch it)",
           sha[stale["file_name"]] != sha[src["file_name"]])
     check("F02 ... but carries exactly the old crawl's createdAt values", stale_created == src_created)

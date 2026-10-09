@@ -17,6 +17,10 @@ models:
     description: >
       Grain: one row per (crawl line, repair rule). Audit trail of every automatic repair: rule, raw value,
       repaired value.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [crawl_line_id, repair_rule]
     columns:
       - name: repair_rule
         data_tests:
@@ -61,7 +65,47 @@ models:
     description: >
       Grain: one row per (reporting date, market). The incident replayed: which crawl the old shared
       catalogue would have served vs the point-in-time catalogue, and how many products and prices disagree.
+    config:
+      access: public          # read by the incident page of the BI site (exposure incident_replay_report)
+      contract: {enforced: true}
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [as_of_date, market]
+    columns:
+      - name: as_of_date
+        data_type: date
+        description: "{{ doc('col_as_of_date') }}"
+      - name: market
+        data_type: string
+        description: "{{ doc('col_market') }}"
+      - name: point_in_time_crawl_date
+        data_type: date
+        description: "{{ doc('col_point_in_time_crawl_date') }}"
+      - name: legacy_crawl_date
+        data_type: date
+        description: "{{ doc('col_legacy_crawl_date') }}"
+      - name: legacy_file
+        data_type: string
+        description: "{{ doc('col_legacy_file') }}"
+      - name: n_products_point_in_time
+        data_type: bigint
+        description: "{{ doc('col_n_products_point_in_time') }}"
+      - name: n_products_legacy
+        data_type: bigint
+        description: "{{ doc('col_n_products_legacy') }}"
+      - name: n_missing_in_legacy
+        data_type: bigint
+        description: "{{ doc('col_n_missing_in_legacy') }}"
+      - name: n_extra_in_legacy
+        data_type: bigint
+        description: "{{ doc('col_n_extra_in_legacy') }}"
+      - name: n_price_differences
+        data_type: bigint
+        description: "{{ doc('col_n_price_differences') }}"
+      - name: share_prices_different
+        data_type: double
+        description: "{{ doc('col_share_prices_different') }}"
+      - name: legacy_would_be_wrong
+        data_type: boolean
+        description: "{{ doc('col_legacy_would_be_wrong') }}"

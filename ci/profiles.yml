@@ -1,0 +1,27 @@
+# dbt profile used by GitHub Actions (and by anyone running dbt Core against the same workspace).
+# It contains NO secret: every credential is an environment variable, filled from GitHub Secrets.
+#
+#   prod   the production schemas (bare names: staging, marts, published, ops ...), built on every merge
+#   ci     one throw-away set of schemas per pull request: <DBT_CI_SCHEMA>_staging, <DBT_CI_SCHEMA>_marts ...
+#
+# dbt Studio does not read this file: it uses the connection configured in the dbt platform.
+
+default:
+  target: ci
+  outputs:
+    prod:
+      type: databricks
+      catalog: workspace
+      schema: prod_default            # unused: every model sets its own schema (see generate_schema_name)
+      host: "{{ env_var('DATABRICKS_SERVER_HOSTNAME') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 4
+    ci:
+      type: databricks
+      catalog: workspace
+      schema: "{{ env_var('DBT_CI_SCHEMA', 'ci_local') }}"
+      host: "{{ env_var('DATABRICKS_SERVER_HOSTNAME') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 4

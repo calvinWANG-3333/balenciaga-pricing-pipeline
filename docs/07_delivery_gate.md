@@ -52,7 +52,8 @@ qa/                         the delivery gate (Python 3.10+)
   tests/                    pytest: verdict rules, catalogue validation, baseline rule
 dbt/macros/ops_tables.sql   creates the two ops tables (on-run-start hook)
 dbt/models/published/       pub_* views + pub_released_deliveries
-dbt/models/marts/health/    ops source + mart_data_health__deliveries
+dbt/models/staging/ops/     ops source + stg_ops__* (moved here in Phase 6a)
+dbt/models/marts/health/    mart_data_health__deliveries
 ```
 
 ---
