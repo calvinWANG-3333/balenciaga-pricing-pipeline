@@ -17,6 +17,7 @@
   The deliverable headline uses lfl_mean_change (each product counts once); the unit test pins this.
 
   Reads only the point-in-time catalogue at month-end dates.
+  Prices stay in local currency: only the % changes can be compared across markets.
 #}
 
 with catalogue as (
