@@ -30,10 +30,13 @@ qa/reports/
 gate_report*.md
 triage_*.md
 
-# ---- BI build output (Evidence) ----
-bi/.evidence/
-bi/build/
+# ---- BI site (Observable Framework): dependencies, build output, data-loader cache ----
 bi/node_modules/
+bi/dist/
+bi/src/.observablehq/cache/
+
+# ---- dbt logs when dbt is run from the repo root ----
+logs/
 
 # ---- OS / editor ----
 .DS_Store

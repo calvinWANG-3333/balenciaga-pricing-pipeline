@@ -1,6 +1,6 @@
 # Balenciaga Pricing Pipeline
 
-> **Status: Phase 6b – lineage pictures generated from dbt manifests (per phase, from git history) and the BI snapshot of the public interface; next: BI pages and the portfolio site.** This README is rewritten at the end of the project; the
+> **Status: Phase 6c – six BI pages (Observable Framework) on the snapshot of the public interface, each decomposed question → decision → grain → model → guarantees → chart; next: the portfolio site.** This README is rewritten at the end of the project; the
 > step-by-step build log lives in [`docs/`](docs/).
 
 An analytics-engineering project that rebuilds a luxury price-monitoring pipeline with **dbt on Databricks**,
@@ -35,7 +35,7 @@ python3 -m generator.validate --out data --determinism    # 13 self-checks
 | Storage + compute | Databricks (Free Edition) – Unity Catalog, Volumes, serverless SQL warehouse |
 | Transformation | dbt (dbt platform, Studio IDE) with the `dbt-databricks` adapter |
 | QA | dbt data tests, unit tests, `qa_*` models graded against the generator's answer key |
-| Serving | Micro / Macro marts → metrics agent (governed SQL) + Evidence.dev dashboards |
+| Serving | published layer → metrics agent (governed SQL) + Observable Framework BI pages (static, from a snapshot) |
 | CI/CD + site | GitHub Actions → GitHub Pages |
 
 ## Repository layout
@@ -49,6 +49,6 @@ agent/          metrics agent (Phase 5)
 qa/             delivery gate: write-audit-publish (Phase 5a)
 ci/             CI profile, requirements, run summaries (Phase 6a); workflows in .github/workflows/
 tools/          lineage pictures from dbt manifests, BI snapshot export (Phase 6b)
-bi/             Evidence.dev dashboards; bi/sources/pricing = the snapshot (Phase 6)
+bi/             BI pages (Observable Framework); bi/src/data = the snapshot (Phase 6c)
 site/           portfolio site; site/assets/lineage = generated lineage pictures (Phase 6)
 ```

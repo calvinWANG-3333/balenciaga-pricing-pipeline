@@ -46,6 +46,15 @@
    "access": null
   },
   {
+   "id": "exposure.balenciaga_pricing.price_change_explorer",
+   "name": "price_change_explorer",
+   "type": "exposure",
+   "layer": "exposures",
+   "folder": "marts",
+   "materialized": null,
+   "access": null
+  },
+  {
    "id": "model.balenciaga_pricing.base_crawl__lines",
    "name": "base_crawl__lines",
    "type": "model",
@@ -693,6 +702,10 @@
   ],
   [
    "model.balenciaga_pricing.pub_dim_market",
+   "exposure.balenciaga_pricing.incident_replay_report"
+  ],
+  [
+   "model.balenciaga_pricing.pub_dim_market",
    "exposure.balenciaga_pricing.macro_category_monitor"
   ],
   [
@@ -700,12 +713,12 @@
    "exposure.balenciaga_pricing.micro_hero_price_tracker"
   ],
   [
-   "model.balenciaga_pricing.pub_dim_product",
-   "exposure.balenciaga_pricing.micro_hero_price_tracker"
+   "model.balenciaga_pricing.pub_dim_market",
+   "exposure.balenciaga_pricing.price_change_explorer"
   ],
   [
-   "model.balenciaga_pricing.pub_fct_catalogue_as_of",
-   "exposure.balenciaga_pricing.incident_replay_report"
+   "model.balenciaga_pricing.pub_dim_product",
+   "exposure.balenciaga_pricing.price_change_explorer"
   ],
   [
    "model.balenciaga_pricing.pub_fct_catalogue_as_of",
@@ -714,6 +727,10 @@
   [
    "model.balenciaga_pricing.pub_fct_price_changes",
    "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.pub_fct_price_changes",
+   "exposure.balenciaga_pricing.price_change_explorer"
   ],
   [
    "model.balenciaga_pricing.pub_fct_price_changes",
@@ -750,10 +767,6 @@
   [
    "model.balenciaga_pricing.pub_micro__hero_prices_weekly",
    "semantic_model.balenciaga_pricing.hero_prices"
-  ],
-  [
-   "model.balenciaga_pricing.pub_released_deliveries",
-   "exposure.balenciaga_pricing.data_health_page"
   ],
   [
    "model.balenciaga_pricing.pub_released_deliveries",

@@ -8,8 +8,9 @@
 #
 # Output: one CSV per table in output_dir + a manifest (row counts, checksums, where it came from).
 
-output_dir: bi/sources/pricing
-manifest: bi/snapshot_manifest.json
+# The Observable Framework site reads these files with FileAttachment (bi/src/data/*.csv).
+output_dir: bi/src/data
+manifest: bi/src/data/snapshot_manifest.json
 
 tables:
   # ------------------------------------------------------------------ Micro

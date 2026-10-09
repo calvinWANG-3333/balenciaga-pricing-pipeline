@@ -69,7 +69,7 @@ table a *pure function* of that history plus a date, and let each delivery choos
 | 5b | **Semantic layer + metrics agent** | dbt semantic models, governed LLM querying, AI triage of gate results | agent answers only governed metrics; triage note for every WARN/BLOCK |
 | 6a | **Production + CI/CD + governance** | environments, Slim CI (state + defer), dbt-project-evaluator, model access + contracts, GitHub Actions | PRs run Slim CI + evaluator (strict); merges deploy write-audit-publish to prod |
 | 6b | **Data snapshot + lineage generator** | manifest.json as data, git history as data, reproducible exports from the public interface | per-phase lineage SVGs compiled from each phase's merge commit; BI data exported from public models and released deliveries only |
-| 6c | **BI** | Evidence.dev | Micro, Macro, incident and data-health pages on the snapshot |
+| 6c | **BI** | Observable Framework; decomposing a page: question → decision → grain → model → guarantees → chart | six static pages on the snapshot, each with a model card |
 | 6d | **Portfolio site** | writing the story, design system | public URL: story, per-phase lineage, dbt docs, dashboards |
 | 6e | **Launch** | LinkedIn post, cover, carousel, demo | published |
 
