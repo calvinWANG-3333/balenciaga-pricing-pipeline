@@ -1,0 +1,17 @@
+market,market_name,region,currency_code,crawl_cadence,is_in_micro_scope,display_order
+FRA,France,Europe,EUR,weekly,true,10
+GBR,United Kingdom,Europe,GBP,weekly,true,20
+USA,United States,Americas,USD,weekly,true,30
+CAN,Canada,Americas,CAD,monthly,false,40
+MEX,Mexico,Americas,MXN,monthly,false,50
+ARE,United Arab Emirates,Middle East,AED,weekly,true,60
+SAU,Saudi Arabia,Middle East,SAR,monthly,false,70
+CHN,Mainland China,Greater China,CNY,weekly,true,80
+HKG,Hong Kong,Greater China,HKD,weekly,true,90
+TWN,Taiwan,Greater China,TWD,monthly,false,100
+JPN,Japan,Asia Pacific,JPY,weekly,true,110
+KOR,South Korea,Asia Pacific,KRW,weekly,true,120
+SGP,Singapore,Asia Pacific,SGD,monthly,false,130
+MYS,Malaysia,Asia Pacific,MYR,monthly,false,140
+THA,Thailand,Asia Pacific,THB,monthly,false,150
+AUS,Australia,Asia Pacific,AUD,monthly,false,160

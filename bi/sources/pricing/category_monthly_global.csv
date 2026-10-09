@@ -1,0 +1,9 @@
+macro_global_row_id,report_month,macro_category,n_markets,lfl_n_product_markets,market_weighted_lfl_change,product_weighted_lfl_change,min_market_lfl_change,max_market_lfl_change,market_with_highest_change
+63af2377cfb58c624928b5a9d76cd0af,2026-08-01,Accessories,16,5685,0.0005,0.0006,-0.0016,0.0009,CAN
+0e485d36b608bf26e11738b625a607c3,2026-08-01,Bags,16,4177,0.0006,0.0006,0.0000,0.0007,ARE
+877666548c87bda3e0a9e21613cb639b,2026-08-01,Shoes,16,3232,-0.0006,-0.0006,-0.0010,0.0000,MEX
+dcd1a0248bfcf184b928d61bac95881b,2026-08-01,Small Leather Goods,16,2780,0.0000,0.0000,0.0000,0.0000,THA
+f6d9399ff0a7f7646735253b7e8877be,2026-09-01,Accessories,16,5695,0.0043,0.0043,0.0035,0.0056,JPN
+ab1cd1189c15e75d730a2f0b1a50d5f1,2026-09-01,Bags,16,4318,0.0524,0.0526,0.0434,0.0696,JPN
+42f1b1f93a578928f1c29c1b5fefc92d,2026-09-01,Shoes,16,3338,-0.0004,-0.0004,-0.0007,0.0000,TWN
+ac44ea38eb5e0ad745e98b652d38113d,2026-09-01,Small Leather Goods,16,2798,0.0491,0.0494,0.0395,0.0655,JPN
