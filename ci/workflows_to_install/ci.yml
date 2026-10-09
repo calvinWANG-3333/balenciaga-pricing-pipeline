@@ -1,0 +1,131 @@
+# Continuous integration: runs on every pull request to main.
+#
+#   checks    no warehouse, no secret: Python lint, the gate's and the agent's unit tests (incl. the agent
+#             evaluation set and the Claude replay tests), dbt parse
+#   slim-ci   on Databricks, in throw-away schemas ci_pr_<number>_*: builds ONLY the models the PR
+#             changed and everything downstream of them; unchanged parents are read from production
+#             (--defer). Then dbt-project-evaluator checks the project's structure, in strict mode.
+#
+# Branch protection on main requires both jobs: nothing reaches production without passing them.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read            # to download the production manifest from the latest successful deploy
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  DBT_PROFILES_DIR: ${{ github.workspace }}/ci
+
+jobs:
+  checks:
+    name: Lint, unit tests, dbt parse
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            ci/requirements.txt
+            qa/requirements.txt
+
+      - name: Install
+        run: pip install -r ci/requirements.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Unit tests - delivery gate and metrics agent (offline)
+        run: python -m pytest agent/tests qa/tests -q
+
+      - name: dbt parse (compiles the whole project, no warehouse)
+        working-directory: dbt
+        env:
+          # parse never connects: placeholders satisfy the profile's env_var() calls
+          DATABRICKS_SERVER_HOSTNAME: parse-only.invalid
+          DATABRICKS_HTTP_PATH: /sql/1.0/warehouses/parse-only
+          DATABRICKS_TOKEN: parse-only
+        run: |
+          dbt deps
+          dbt parse
+
+  slim-ci:
+    name: Slim CI on Databricks
+    needs: checks
+    # secrets are not shared with pull requests from forks
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DBT_CI_SCHEMA: ci_pr_${{ github.event.pull_request.number || github.run_id }}
+      DATABRICKS_SERVER_HOSTNAME: ${{ secrets.DATABRICKS_SERVER_HOSTNAME }}
+      DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            ci/requirements.txt
+            qa/requirements.txt
+
+      - name: Install
+        run: pip install -r ci/requirements.txt
+
+      - name: Fetch production state (manifest of the last successful deploy)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id=$(gh run list --workflow deploy.yml --branch main --status success --limit 1 \
+                     --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$run_id" ] && gh run download "$run_id" --name prod-state --dir prod-state; then
+            echo "Production state from deploy run $run_id"
+            echo "HAS_PROD_STATE=true" >> "$GITHUB_ENV"
+          else
+            echo "No production state yet: this run builds the whole project."
+          fi
+
+      - name: dbt deps
+        working-directory: dbt
+        run: dbt deps
+
+      - name: Build changed models + downstream (state:modified+, deferred to production)
+        working-directory: dbt
+        run: |
+          if [ "${HAS_PROD_STATE:-false}" = "true" ]; then
+            dbt build --target ci --select state:modified+ --defer --state "$GITHUB_WORKSPACE/prod-state"
+          else
+            dbt build --target ci
+          fi
+
+      - name: Summary - build
+        if: always()
+        run: python ci/summarize_run.py dbt/target/run_results.json "Slim CI build (${DBT_CI_SCHEMA})" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Best-practice checks (dbt-project-evaluator, strict)
+        working-directory: dbt
+        env:
+          DBT_PROJECT_EVALUATOR_ENABLED: "true"
+          DBT_PROJECT_EVALUATOR_SEVERITY: error
+        run: dbt build --target ci --select package:dbt_project_evaluator dbt_project_evaluator_exceptions
+
+      - name: Summary - project evaluator
+        if: always()
+        run: python ci/summarize_run.py dbt/target/run_results.json "dbt-project-evaluator" >> "$GITHUB_STEP_SUMMARY"

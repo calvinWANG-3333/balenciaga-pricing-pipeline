@@ -13,7 +13,7 @@
 
 with results as (
 
-    select * from {{ source('ops', 'qa_check_results') }}
+    select * from {{ ref('stg_ops__qa_check_results') }}
 
 ),
 
@@ -53,7 +53,7 @@ releases as (
 
     select scope, as_of_date, max_by(decision, released_at) as released_decision,
            bool_or(is_forced) as is_forced, max(released_at) as released_at
-    from {{ source('ops', 'delivery_releases') }}
+    from {{ ref('stg_ops__delivery_releases') }}
     group by scope, as_of_date
 
 )

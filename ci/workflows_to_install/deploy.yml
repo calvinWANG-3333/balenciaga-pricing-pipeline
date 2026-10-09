@@ -1,0 +1,101 @@
+# Production deployment: runs on every merge to main (and on demand).
+#
+# It is the write-audit-publish pattern, end to end:
+#   WRITE    dbt build --target prod        every model and test, into the production schemas
+#   AUDIT    python -m qa.gate audit         the delivery gate measures each new delivery
+#   PUBLISH  (same step)                     deliveries that pass are released to BI; a BLOCK is not,
+#                                            and fails this workflow so someone is notified
+# Then it saves the production manifest: the "state" that Slim CI compares pull requests against.
+
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false          # never interrupt a production build half-way
+
+env:
+  PYTHON_VERSION: "3.11"
+  DBT_PROFILES_DIR: ${{ github.workspace }}/ci
+
+jobs:
+  deploy:
+    name: Build, audit, publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production          # deployment history in GitHub; secrets can be scoped to it
+    env:
+      DATABRICKS_SERVER_HOSTNAME: ${{ secrets.DATABRICKS_SERVER_HOSTNAME }}
+      DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      QA_BACKEND: databricks
+      QA_SCHEMA_PREFIX: ""           # production: bare schema names (marts, ops ...)
+      QA_RUN_BY: github-actions
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            ci/requirements.txt
+            qa/requirements.txt
+
+      - name: Install
+        run: pip install -r ci/requirements.txt
+
+      - name: dbt deps
+        working-directory: dbt
+        run: dbt deps
+
+      - name: WRITE - dbt build (production)
+        id: build
+        working-directory: dbt
+        run: dbt build --target prod
+
+      - name: Summary - build
+        if: always()
+        run: python ci/summarize_run.py dbt/target/run_results.json "Production build" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: AUDIT + PUBLISH - delivery gate
+        id: gate
+        if: steps.build.outcome == 'success'
+        run: |
+          # a BLOCK makes the gate exit 1; still audit the legacy replay, then fail the step to notify
+          status=0
+          python -m qa.gate audit --report gate_report.md || status=$?
+          python -m qa.gate audit --dataset legacy_replay --report gate_report_legacy.md
+          exit "$status"
+
+      - name: Summary - delivery gate
+        if: always() && steps.build.outcome == 'success'
+        run: |
+          for f in gate_report.md gate_report_legacy.md; do
+            [ -f "$f" ] && cat "$f" >> "$GITHUB_STEP_SUMMARY"
+          done
+          true
+
+      - name: Docs and production state for Slim CI
+        if: always() && steps.build.outcome == 'success'
+        working-directory: dbt
+        run: dbt docs generate --target prod
+
+      - name: Upload production state
+        if: always() && steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-state
+          path: |
+            dbt/target/manifest.json
+            dbt/target/catalog.json
+            dbt/target/run_results.json
+            dbt/target/semantic_manifest.json
+          retention-days: 90

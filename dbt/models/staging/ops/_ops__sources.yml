@@ -1,7 +1,7 @@
 version: 2
 
 # Tables written by the delivery gate (qa/), not by dbt. dbt creates them empty (on-run-start, see
-# macros/ops_tables.sql) and reads them back here. They are append-only audit logs.
+# macros/ops_tables.sql) and reads them back here, through the stg_ops__* models. Append-only audit logs.
 sources:
   - name: ops
     description: Operational tables of the delivery gate (write-audit-publish).
@@ -9,6 +9,11 @@ sources:
     tables:
       - name: qa_check_results
         description: One row per (gate run, delivery, check, subject). The full audit trail of every check.
+        config:
+          loaded_at_field: checked_at
+          freshness:
+            # the gate audits every weekly delivery: 8 days without a run means a delivery was not audited
+            warn_after: {count: 8, period: day}
         columns:
           - name: status
             data_tests:
@@ -22,6 +27,10 @@ sources:
         description: >
           One row per release decision. A delivery (scope, as_of_date) is visible to BI only once it has a
           row here. Written by the gate when a delivery passes, or by a human forcing a release (with a reason).
+        config:
+          loaded_at_field: released_at
+          freshness:
+            warn_after: {count: 8, period: day}
         columns:
           - name: decision
             data_tests:

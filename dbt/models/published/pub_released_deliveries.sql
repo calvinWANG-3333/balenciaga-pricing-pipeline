@@ -17,5 +17,5 @@ select
     max_by(decision, released_at)                                        as decision,
     bool_or(is_forced)                                                   as is_forced,
     min(released_at)                                                     as first_released_at
-from {{ source('ops', 'delivery_releases') }}
+from {{ ref('stg_ops__delivery_releases') }}
 group by scope, as_of_date

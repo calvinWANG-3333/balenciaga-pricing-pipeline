@@ -1,6 +1,6 @@
 # Balenciaga Pricing Pipeline
 
-> **Status: Phase 5b – semantic layer + metrics agent + triage agent done; next: BI site, CI/CD and the portfolio page.** This README is rewritten at the end of the project; the
+> **Status: Phase 6a – production + Slim CI on GitHub Actions, dbt-project-evaluator, governed public interface; next: lineage, BI and the portfolio site.** This README is rewritten at the end of the project; the
 > step-by-step build log lives in [`docs/`](docs/).
 
 An analytics-engineering project that rebuilds a luxury price-monitoring pipeline with **dbt on Databricks**,

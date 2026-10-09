@@ -67,7 +67,11 @@ table a *pure function* of that history plus a date, and let each delivery choos
 | 4 | **Marts + tests** | grain, incremental merge, contracts, unit tests, the killer test | same SKU + same as-of date ⇒ same price in Micro and Macro |
 | 5a | **Delivery gate** (write-audit-publish) | release-time QA in Python against the warehouse, checks-as-code, published layer | BI reads only released deliveries; the gate blocks the replayed incident |
 | 5b | **Semantic layer + metrics agent** | dbt semantic models, governed LLM querying, AI triage of gate results | agent answers only governed metrics; triage note for every WARN/BLOCK |
-| 6 | **BI + CI/CD + portfolio site** | Evidence.dev, GitHub Actions, GitHub Pages, writing the story | public URL with architecture, defects, tests, dashboards |
+| 6a | **Production + CI/CD + governance** | environments, Slim CI (state + defer), dbt-project-evaluator, model access + contracts, GitHub Actions | PRs run Slim CI + evaluator (strict); merges deploy write-audit-publish to prod |
+| 6b | **Data snapshot + lineage generator** | manifest.json as data, reproducible exports from the published layer | lineage SVGs generated from the manifest; BI data exported from released deliveries only |
+| 6c | **BI** | Evidence.dev | Micro, Macro, incident and data-health pages on the snapshot |
+| 6d | **Portfolio site** | writing the story, design system | public URL: story, per-phase lineage, dbt docs, dashboards |
+| 6e | **Launch** | LinkedIn post, cover, carousel, demo | published |
 
 ---
 

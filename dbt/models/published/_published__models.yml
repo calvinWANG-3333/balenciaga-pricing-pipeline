@@ -2,31 +2,352 @@ version: 2
 
 # The published layer: what BI and the metrics agent are allowed to read. Each view is a mart filtered to
 # deliveries the delivery gate has released (write-audit-publish). Views, so a release is visible at once.
+#
+# This is the PUBLIC interface of the project (access: public, set in dbt_project.yml), so every view has
+#   - an enforced contract: column names and types are checked at build time; a breaking change fails
+#     the build here instead of breaking a dashboard
+#   - every column documented (doc blocks in models/docs/public_columns.md, shared with the marts)
+#   - its primary key tested where consumers read it, not only upstream
 
 models:
   - name: pub_released_deliveries
-    description: Grain - one row per released delivery (scope, as_of_date). The publish switch.
+    description: >
+      Grain - one row per released delivery (scope, as_of_date). The publish switch: every other published view keeps only the deliveries listed here.
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [scope, as_of_date]
     columns:
       - name: scope
+        data_type: string
+        description: "{{ doc('col_scope') }}"
         data_tests:
           - accepted_values:
               arguments: {values: [micro, macro]}
+      - name: as_of_date
+        data_type: date
+        description: "{{ doc('col_as_of_date') }}"
+      - name: decision
+        data_type: string
+        description: "{{ doc('col_decision') }}"
+      - name: is_forced
+        data_type: boolean
+        description: "{{ doc('col_is_forced') }}"
+      - name: first_released_at
+        data_type: timestamp
+        description: "{{ doc('col_first_released_at') }}"
 
   - name: pub_micro__hero_prices_weekly
-    description: mart_micro__hero_prices_weekly, released Micro deliveries only.
+    description: >
+      mart_micro__hero_prices_weekly, released Micro deliveries only. Grain - one row per (delivery_date, pointer_id, market).
+    columns:
+      - name: micro_row_id
+        data_type: string
+        description: "{{ doc('col_micro_row_id') }}"
+        data_tests: [unique, not_null]
+      - name: delivery_date
+        data_type: date
+        description: "{{ doc('col_delivery_date') }}"
+      - name: pointer_id
+        data_type: string
+        description: "{{ doc('col_pointer_id') }}"
+      - name: sku
+        data_type: string
+        description: "{{ doc('col_sku') }}"
+      - name: product_label
+        data_type: string
+        description: "{{ doc('col_product_label') }}"
+      - name: market
+        data_type: string
+        description: "{{ doc('col_market') }}"
+      - name: currency_code
+        data_type: string
+        description: "{{ doc('col_currency_code') }}"
+      - name: price_local
+        data_type: decimal(18,2)
+        description: "{{ doc('col_price_local') }}"
+      - name: previous_price_local
+        data_type: decimal(18,2)
+        description: "{{ doc('col_previous_price_local') }}"
+      - name: change_vs_previous_pct
+        data_type: decimal(10,4)
+        description: "{{ doc('col_change_vs_previous_pct') }}"
+      - name: price_status
+        data_type: string
+        description: "{{ doc('col_price_status') }}"
+      - name: crawl_date_used
+        data_type: date
+        description: "{{ doc('col_crawl_date_used') }}"
+      - name: price_crawl_date
+        data_type: date
+        description: "{{ doc('col_price_crawl_date') }}"
+      - name: is_stale_crawl
+        data_type: boolean
+        description: "{{ doc('col_is_stale_crawl') }}"
+      - name: is_price_carried_forward
+        data_type: boolean
+        description: "{{ doc('col_is_price_carried_forward') }}"
+
   - name: pub_macro__category_monthly
-    description: mart_macro__category_monthly, released Macro deliveries only.
+    description: >
+      mart_macro__category_monthly, released Macro deliveries only. Grain - one row per (report_month, market, macro_category).
+    columns:
+      - name: macro_row_id
+        data_type: string
+        description: "{{ doc('col_macro_row_id') }}"
+        data_tests: [unique, not_null]
+      - name: report_month
+        data_type: date
+        description: "{{ doc('col_report_month') }}"
+      - name: as_of_date
+        data_type: date
+        description: "{{ doc('col_as_of_date') }}"
+      - name: market
+        data_type: string
+        description: "{{ doc('col_market') }}"
+      - name: macro_category
+        data_type: string
+        description: "{{ doc('col_macro_category') }}"
+      - name: currency_code
+        data_type: string
+        description: "{{ doc('col_currency_code') }}"
+      - name: n_products
+        data_type: int
+        description: "{{ doc('col_n_products') }}"
+      - name: min_price
+        data_type: decimal(18,2)
+        description: "{{ doc('col_min_price') }}"
+      - name: median_price
+        data_type: decimal(18,2)
+        description: "{{ doc('col_median_price') }}"
+      - name: mean_price
+        data_type: decimal(18,2)
+        description: "{{ doc('col_mean_price') }}"
+      - name: max_price
+        data_type: decimal(18,2)
+        description: "{{ doc('col_max_price') }}"
+      - name: lfl_n_products
+        data_type: int
+        description: "{{ doc('col_lfl_n_products') }}"
+      - name: lfl_mean_change
+        data_type: decimal(10,4)
+        description: "{{ doc('col_lfl_mean_change') }}"
+      - name: lfl_ratio_of_means
+        data_type: decimal(10,4)
+        description: "{{ doc('col_lfl_ratio_of_means') }}"
+      - name: lfl_share_increased
+        data_type: decimal(10,4)
+        description: "{{ doc('col_lfl_share_increased') }}"
+
   - name: pub_macro__category_monthly_global
-    description: mart_macro__category_monthly_global, months whose Macro delivery is released.
+    description: >
+      mart_macro__category_monthly_global, months whose Macro delivery is released. Grain - one row per (report_month, macro_category).
+    columns:
+      - name: macro_global_row_id
+        data_type: string
+        description: "{{ doc('col_macro_global_row_id') }}"
+        data_tests: [unique, not_null]
+      - name: report_month
+        data_type: date
+        description: "{{ doc('col_report_month') }}"
+      - name: macro_category
+        data_type: string
+        description: "{{ doc('col_macro_category') }}"
+      - name: n_markets
+        data_type: int
+        description: "{{ doc('col_n_markets') }}"
+      - name: lfl_n_product_markets
+        data_type: int
+        description: "{{ doc('col_lfl_n_product_markets') }}"
+      - name: market_weighted_lfl_change
+        data_type: decimal(10,4)
+        description: "{{ doc('col_market_weighted_lfl_change') }}"
+      - name: product_weighted_lfl_change
+        data_type: decimal(10,4)
+        description: "{{ doc('col_product_weighted_lfl_change') }}"
+      - name: min_market_lfl_change
+        data_type: decimal(10,4)
+        description: "{{ doc('col_min_market_lfl_change') }}"
+      - name: max_market_lfl_change
+        data_type: decimal(10,4)
+        description: "{{ doc('col_max_market_lfl_change') }}"
+      - name: market_with_highest_change
+        data_type: string
+        description: "{{ doc('col_market_with_highest_change') }}"
+
   - name: pub_fct_catalogue_as_of
-    description: fct_catalogue_as_of, dates of released deliveries only.
+    description: >
+      fct_catalogue_as_of, dates of released deliveries only. Grain - one row per (as_of_date, object_id).
+    columns:
+      - name: catalogue_row_id
+        data_type: string
+        description: "{{ doc('col_catalogue_row_id') }}"
+        data_tests: [unique, not_null]
+      - name: as_of_date
+        data_type: date
+        description: "{{ doc('col_as_of_date') }}"
+      - name: is_micro_date
+        data_type: boolean
+        description: "{{ doc('col_is_micro_date') }}"
+      - name: is_macro_date
+        data_type: boolean
+        description: "{{ doc('col_is_macro_date') }}"
+      - name: market
+        data_type: string
+        description: "{{ doc('col_market') }}"
+      - name: sku
+        data_type: string
+        description: "{{ doc('col_sku') }}"
+      - name: object_id
+        data_type: string
+        description: "{{ doc('col_object_id') }}"
+      - name: presence_crawl_date
+        data_type: date
+        description: "{{ doc('col_presence_crawl_date') }}"
+      - name: presence_age_days
+        data_type: int
+        description: "{{ doc('col_presence_age_days') }}"
+      - name: has_price
+        data_type: boolean
+        description: "{{ doc('col_has_price') }}"
+      - name: price_local
+        data_type: decimal(18,2)
+        description: "{{ doc('col_price_local') }}"
+      - name: currency_code
+        data_type: string
+        description: "{{ doc('col_currency_code') }}"
+      - name: price_crawl_date
+        data_type: date
+        description: "{{ doc('col_price_crawl_date') }}"
+      - name: is_price_carried_forward
+        data_type: boolean
+        description: "{{ doc('col_is_price_carried_forward') }}"
+
   - name: pub_fct_price_changes
-    description: fct_price_changes, up to the latest released delivery.
+    description: >
+      fct_price_changes, up to the latest released delivery. Grain - one row per price change event.
+    columns:
+      - name: price_change_id
+        data_type: string
+        description: "{{ doc('col_price_change_id') }}"
+        data_tests: [unique, not_null]
+      - name: object_id
+        data_type: string
+        description: "{{ doc('col_object_id') }}"
+      - name: sku
+        data_type: string
+        description: "{{ doc('col_sku') }}"
+      - name: market
+        data_type: string
+        description: "{{ doc('col_market') }}"
+      - name: macro_category
+        data_type: string
+        description: "{{ doc('col_macro_category') }}"
+      - name: currency_code
+        data_type: string
+        description: "{{ doc('col_currency_code') }}"
+      - name: changed_on_crawl_date
+        data_type: date
+        description: "{{ doc('col_changed_on_crawl_date') }}"
+      - name: price_before
+        data_type: decimal(18,2)
+        description: "{{ doc('col_price_before') }}"
+      - name: price_after
+        data_type: decimal(18,2)
+        description: "{{ doc('col_price_after') }}"
+      - name: change_pct
+        data_type: decimal(10,4)
+        description: "{{ doc('col_change_pct') }}"
+      - name: change_direction
+        data_type: string
+        description: "{{ doc('col_change_direction') }}"
+
   - name: pub_dim_product
-    description: dim_product, published as is.
+    description: >
+      dim_product, published as is. Grain - one row per SKU.
+    columns:
+      - name: sku
+        data_type: string
+        description: "{{ doc('col_sku') }}"
+        data_tests: [unique, not_null]
+      - name: product_name
+        data_type: string
+        description: "{{ doc('col_product_name') }}"
+      - name: color
+        data_type: string
+        description: "{{ doc('col_color') }}"
+      - name: collection
+        data_type: string
+        description: "{{ doc('col_collection') }}"
+      - name: ly_category_code
+        data_type: string
+        description: "{{ doc('col_ly_category_code') }}"
+      - name: ly_category_name
+        data_type: string
+        description: "{{ doc('col_ly_category_name') }}"
+      - name: ly_level_1
+        data_type: string
+        description: "{{ doc('col_ly_level_1') }}"
+      - name: ly_level_2
+        data_type: string
+        description: "{{ doc('col_ly_level_2') }}"
+      - name: macro_category
+        data_type: string
+        description: "{{ doc('col_macro_category') }}"
+      - name: is_in_macro_scope
+        data_type: boolean
+        description: "{{ doc('col_is_in_macro_scope') }}"
+      - name: categorized_by_rule
+        data_type: string
+        description: "{{ doc('col_categorized_by_rule') }}"
+      - name: brand_macro_category
+        data_type: string
+        description: "{{ doc('col_brand_macro_category') }}"
+      - name: brand_super_micro_category
+        data_type: string
+        description: "{{ doc('col_brand_super_micro_category') }}"
+      - name: first_seen_date
+        data_type: date
+        description: "{{ doc('col_first_seen_date') }}"
+      - name: last_seen_date
+        data_type: date
+        description: "{{ doc('col_last_seen_date') }}"
+      - name: n_markets_seen
+        data_type: int
+        description: "{{ doc('col_n_markets_seen') }}"
+      - name: is_micro_pointer
+        data_type: boolean
+        description: "{{ doc('col_is_micro_pointer') }}"
+      - name: micro_pointer_id
+        data_type: string
+        description: "{{ doc('col_micro_pointer_id') }}"
+      - name: micro_product_label
+        data_type: string
+        description: "{{ doc('col_micro_product_label') }}"
+
   - name: pub_dim_market
-    description: dim_market, published as is.
+    description: >
+      dim_market, published as is. Grain - one row per market.
+    columns:
+      - name: market
+        data_type: string
+        description: "{{ doc('col_market') }}"
+        data_tests: [unique, not_null]
+      - name: market_name
+        data_type: string
+        description: "{{ doc('col_market_name') }}"
+      - name: region
+        data_type: string
+        description: "{{ doc('col_region') }}"
+      - name: currency_code
+        data_type: string
+        description: "{{ doc('col_currency_code') }}"
+      - name: crawl_cadence
+        data_type: string
+        description: "{{ doc('col_crawl_cadence') }}"
+      - name: is_in_micro_scope
+        data_type: boolean
+        description: "{{ doc('col_is_in_micro_scope') }}"
+      - name: display_order
+        data_type: int
+        description: "{{ doc('col_display_order') }}"

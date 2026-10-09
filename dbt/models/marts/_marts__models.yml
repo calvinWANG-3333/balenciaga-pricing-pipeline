@@ -226,12 +226,62 @@ models:
       Grain: one row per (dataset, scope, delivery date). Latest delivery-gate verdict on each delivery:
       counts of pass / warn / fail checks, the checks that did not pass, the decision (PASS / WARN / BLOCK)
       and whether it is published. dataset = legacy_replay rows are the gate run on the old design.
+    config:
+      access: public          # read by the data-health page and the triage agent
+      contract: {enforced: true}
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [dataset, scope, as_of_date]
     columns:
+      - name: dataset
+        data_type: string
+        description: "{{ doc('col_dataset') }}"
+      - name: scope
+        data_type: string
+        description: "{{ doc('col_scope') }}"
+      - name: as_of_date
+        data_type: date
+        description: "{{ doc('col_as_of_date') }}"
+      - name: run_id
+        data_type: string
+        description: "{{ doc('col_run_id') }}"
+      - name: checked_at
+        data_type: timestamp
+        description: "{{ doc('col_checked_at') }}"
+      - name: n_results
+        data_type: bigint
+        description: "{{ doc('col_n_results') }}"
+      - name: n_pass
+        data_type: bigint
+        description: "{{ doc('col_n_pass') }}"
+      - name: n_warn
+        data_type: bigint
+        description: "{{ doc('col_n_warn') }}"
+      - name: n_fail
+        data_type: bigint
+        description: "{{ doc('col_n_fail') }}"
+      - name: n_skip
+        data_type: bigint
+        description: "{{ doc('col_n_skip') }}"
+      - name: n_blocking_failures
+        data_type: bigint
+        description: "{{ doc('col_n_blocking_failures') }}"
+      - name: checks_not_passing
+        data_type: "array<string>"
+        description: "{{ doc('col_checks_not_passing') }}"
       - name: gate_decision
+        data_type: string
+        description: "{{ doc('col_gate_decision') }}"
         data_tests:
           - accepted_values:
               arguments: {values: [PASS, WARN, BLOCK]}
+      - name: is_published
+        data_type: boolean
+        description: "{{ doc('col_is_published') }}"
+      - name: is_forced_release
+        data_type: boolean
+        description: "{{ doc('col_is_forced_release') }}"
+      - name: released_at
+        data_type: timestamp
+        description: "{{ doc('col_released_at') }}"
