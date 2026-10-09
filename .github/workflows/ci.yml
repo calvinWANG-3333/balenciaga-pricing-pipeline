@@ -93,8 +93,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Before the first merge, deploy.yml does not exist on main yet and `gh run list` answers 404:
+          # that is "no production state", not an error, so the lookup is allowed to fail.
           run_id=$(gh run list --workflow deploy.yml --branch main --status success --limit 1 \
-                     --json databaseId --jq '.[0].databaseId // empty')
+                     --json databaseId --jq '.[0].databaseId // empty' 2>/dev/null || true)
           if [ -n "$run_id" ] && gh run download "$run_id" --name prod-state --dir prod-state; then
             echo "Production state from deploy run $run_id"
             echo "HAS_PROD_STATE=true" >> "$GITHUB_ENV"
