@@ -1,0 +1,59 @@
+# What the BI site is built from: a snapshot of the PUBLIC interface of the warehouse.
+#
+# Only models with access: public are allowed here (the export refuses anything else): the published
+# views, which contain released deliveries only, and the gate's public health marts. So the dashboards can
+# never show a delivery the gate has not released, nor depend on an internal model that may change.
+#
+#   python -m tools.snapshot.export                  # reads production when QA_SCHEMA_PREFIX=""
+#
+# Output: one CSV per table in output_dir + a manifest (row counts, checksums, where it came from).
+
+output_dir: bi/sources/pricing
+manifest: bi/snapshot_manifest.json
+
+tables:
+  # ------------------------------------------------------------------ Micro
+  - file: hero_prices_weekly
+    model: pub_micro__hero_prices_weekly
+    layer: published
+    order_by: [delivery_date, pointer_id, market]
+  # ------------------------------------------------------------------ Macro
+  - file: category_monthly
+    model: pub_macro__category_monthly
+    layer: published
+    order_by: [report_month, market, macro_category]
+  - file: category_monthly_global
+    model: pub_macro__category_monthly_global
+    layer: published
+    order_by: [report_month, macro_category]
+  - file: price_changes
+    model: pub_fct_price_changes
+    layer: published
+    order_by: [changed_on_crawl_date, market, sku]
+  # ------------------------------------------------------------------ reference
+  - file: products
+    model: pub_dim_product
+    layer: published
+    order_by: [sku]
+  - file: markets
+    model: pub_dim_market
+    layer: published
+    order_by: [display_order]
+  # ------------------------------------------------------------------ delivery gate
+  - file: released_deliveries
+    model: pub_released_deliveries
+    layer: published
+    order_by: [scope, as_of_date]
+  - file: gate_deliveries
+    model: mart_data_health__deliveries
+    layer: marts
+    order_by: [dataset, scope, as_of_date]
+  - file: gate_check_results
+    model: mart_data_health__check_results
+    layer: marts
+    order_by: [dataset, scope, as_of_date, check_id, subject]
+  # ------------------------------------------------------------------ the incident, replayed
+  - file: incident_replay
+    model: qa_incident__legacy_vs_point_in_time
+    layer: quality
+    order_by: [as_of_date, market]

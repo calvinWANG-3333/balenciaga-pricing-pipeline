@@ -1,0 +1,592 @@
+{
+ "nodes": [
+  {
+   "id": "exposure.balenciaga_pricing.incident_replay_report",
+   "name": "incident_replay_report",
+   "type": "exposure",
+   "layer": "exposures",
+   "folder": "marts",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "exposure.balenciaga_pricing.macro_category_monitor",
+   "name": "macro_category_monitor",
+   "type": "exposure",
+   "layer": "exposures",
+   "folder": "marts",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "exposure.balenciaga_pricing.metrics_agent",
+   "name": "metrics_agent",
+   "type": "exposure",
+   "layer": "exposures",
+   "folder": "marts",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "exposure.balenciaga_pricing.micro_hero_price_tracker",
+   "name": "micro_hero_price_tracker",
+   "type": "exposure",
+   "layer": "exposures",
+   "folder": "marts",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "model.balenciaga_pricing.base_crawl__lines",
+   "name": "base_crawl__lines",
+   "type": "model",
+   "layer": "staging",
+   "folder": "staging/crawl/base",
+   "materialized": "view",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.dim_market",
+   "name": "dim_market",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/core",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.dim_product",
+   "name": "dim_product",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/core",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.fct_catalogue_as_of",
+   "name": "fct_catalogue_as_of",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/core",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.fct_price_changes",
+   "name": "fct_price_changes",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/core",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.fct_price_observations",
+   "name": "fct_price_observations",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/core",
+   "materialized": "incremental",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_as_of_dates",
+   "name": "int_as_of_dates",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/prices",
+   "materialized": "view",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_catalogue__as_of",
+   "name": "int_catalogue__as_of",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/prices",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_deliveries__profiled",
+   "name": "int_deliveries__profiled",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/deliveries",
+   "materialized": "view",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_legacy__catalogue_replayed",
+   "name": "int_legacy__catalogue_replayed",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/legacy",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_market_batches__assessed",
+   "name": "int_market_batches__assessed",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/deliveries",
+   "materialized": "view",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_observations__accepted",
+   "name": "int_observations__accepted",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/observations",
+   "materialized": "view",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_observations__classified",
+   "name": "int_observations__classified",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/observations",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_prices__historized",
+   "name": "int_prices__historized",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/prices",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.int_products__categorized",
+   "name": "int_products__categorized",
+   "type": "model",
+   "layer": "intermediate",
+   "folder": "intermediate/products",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.mart_macro__category_monthly",
+   "name": "mart_macro__category_monthly",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/macro",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.mart_macro__category_monthly_global",
+   "name": "mart_macro__category_monthly_global",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/macro",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.mart_micro__hero_prices_weekly",
+   "name": "mart_micro__hero_prices_weekly",
+   "type": "model",
+   "layer": "marts",
+   "folder": "marts/micro",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_answer_key__recall",
+   "name": "qa_answer_key__recall",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/answer_key",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_incident__legacy_vs_point_in_time",
+   "name": "qa_incident__legacy_vs_point_in_time",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/incident",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_int__price_scale_outliers",
+   "name": "qa_int__price_scale_outliers",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/intermediate",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_raw__file_profile",
+   "name": "qa_raw__file_profile",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/raw",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_raw__quarantined_lines",
+   "name": "qa_raw__quarantined_lines",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/raw",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_raw__repaired_values",
+   "name": "qa_raw__repaired_values",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/raw",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.stg_crawl__product_observations",
+   "name": "stg_crawl__product_observations",
+   "type": "model",
+   "layer": "staging",
+   "folder": "staging/crawl",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "seed.balenciaga_pricing.ly_category_rules",
+   "name": "ly_category_rules",
+   "type": "seed",
+   "layer": "seeds",
+   "folder": "",
+   "materialized": "seed",
+   "access": null
+  },
+  {
+   "id": "seed.balenciaga_pricing.ly_category_tree",
+   "name": "ly_category_tree",
+   "type": "seed",
+   "layer": "seeds",
+   "folder": "",
+   "materialized": "seed",
+   "access": null
+  },
+  {
+   "id": "seed.balenciaga_pricing.markets",
+   "name": "markets",
+   "type": "seed",
+   "layer": "seeds",
+   "folder": "",
+   "materialized": "seed",
+   "access": null
+  },
+  {
+   "id": "seed.balenciaga_pricing.micro_pointers",
+   "name": "micro_pointers",
+   "type": "seed",
+   "layer": "seeds",
+   "folder": "",
+   "materialized": "seed",
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.batch_manifest",
+   "name": "answer_key.batch_manifest",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.defect_manifest",
+   "name": "answer_key.defect_manifest",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.price_changes",
+   "name": "answer_key.price_changes",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.product_master",
+   "name": "answer_key.product_master",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.crawl.crawl_lines",
+   "name": "crawl.crawl_lines",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/crawl",
+   "materialized": null,
+   "access": null
+  }
+ ],
+ "edges": [
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.int_deliveries__profiled"
+  ],
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.qa_raw__quarantined_lines"
+  ],
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.qa_raw__repaired_values"
+  ],
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.stg_crawl__product_observations"
+  ],
+  [
+   "model.balenciaga_pricing.dim_market",
+   "exposure.balenciaga_pricing.macro_category_monitor"
+  ],
+  [
+   "model.balenciaga_pricing.dim_market",
+   "exposure.balenciaga_pricing.micro_hero_price_tracker"
+  ],
+  [
+   "model.balenciaga_pricing.dim_market",
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly"
+  ],
+  [
+   "model.balenciaga_pricing.dim_product",
+   "exposure.balenciaga_pricing.micro_hero_price_tracker"
+  ],
+  [
+   "model.balenciaga_pricing.fct_catalogue_as_of",
+   "exposure.balenciaga_pricing.incident_replay_report"
+  ],
+  [
+   "model.balenciaga_pricing.fct_catalogue_as_of",
+   "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.fct_price_changes",
+   "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.fct_price_observations",
+   "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.int_as_of_dates",
+   "model.balenciaga_pricing.int_catalogue__as_of"
+  ],
+  [
+   "model.balenciaga_pricing.int_as_of_dates",
+   "model.balenciaga_pricing.int_legacy__catalogue_replayed"
+  ],
+  [
+   "model.balenciaga_pricing.int_as_of_dates",
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly"
+  ],
+  [
+   "model.balenciaga_pricing.int_catalogue__as_of",
+   "model.balenciaga_pricing.fct_catalogue_as_of"
+  ],
+  [
+   "model.balenciaga_pricing.int_catalogue__as_of",
+   "model.balenciaga_pricing.mart_macro__category_monthly"
+  ],
+  [
+   "model.balenciaga_pricing.int_catalogue__as_of",
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly"
+  ],
+  [
+   "model.balenciaga_pricing.int_catalogue__as_of",
+   "model.balenciaga_pricing.qa_incident__legacy_vs_point_in_time"
+  ],
+  [
+   "model.balenciaga_pricing.int_deliveries__profiled",
+   "model.balenciaga_pricing.int_as_of_dates"
+  ],
+  [
+   "model.balenciaga_pricing.int_deliveries__profiled",
+   "model.balenciaga_pricing.int_market_batches__assessed"
+  ],
+  [
+   "model.balenciaga_pricing.int_deliveries__profiled",
+   "model.balenciaga_pricing.qa_raw__file_profile"
+  ],
+  [
+   "model.balenciaga_pricing.int_legacy__catalogue_replayed",
+   "model.balenciaga_pricing.qa_incident__legacy_vs_point_in_time"
+  ],
+  [
+   "model.balenciaga_pricing.int_market_batches__assessed",
+   "model.balenciaga_pricing.int_catalogue__as_of"
+  ],
+  [
+   "model.balenciaga_pricing.int_market_batches__assessed",
+   "model.balenciaga_pricing.int_legacy__catalogue_replayed"
+  ],
+  [
+   "model.balenciaga_pricing.int_market_batches__assessed",
+   "model.balenciaga_pricing.int_observations__classified"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__accepted",
+   "model.balenciaga_pricing.fct_price_observations"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__accepted",
+   "model.balenciaga_pricing.int_catalogue__as_of"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__accepted",
+   "model.balenciaga_pricing.int_prices__historized"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__accepted",
+   "model.balenciaga_pricing.int_products__categorized"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__classified",
+   "model.balenciaga_pricing.int_catalogue__as_of"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__classified",
+   "model.balenciaga_pricing.int_legacy__catalogue_replayed"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__classified",
+   "model.balenciaga_pricing.int_observations__accepted"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__classified",
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__classified",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "model.balenciaga_pricing.int_observations__classified",
+   "model.balenciaga_pricing.qa_int__price_scale_outliers"
+  ],
+  [
+   "model.balenciaga_pricing.int_prices__historized",
+   "model.balenciaga_pricing.fct_price_changes"
+  ],
+  [
+   "model.balenciaga_pricing.int_products__categorized",
+   "model.balenciaga_pricing.dim_product"
+  ],
+  [
+   "model.balenciaga_pricing.int_products__categorized",
+   "model.balenciaga_pricing.mart_macro__category_monthly"
+  ],
+  [
+   "model.balenciaga_pricing.mart_macro__category_monthly",
+   "exposure.balenciaga_pricing.macro_category_monitor"
+  ],
+  [
+   "model.balenciaga_pricing.mart_macro__category_monthly",
+   "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.mart_macro__category_monthly",
+   "model.balenciaga_pricing.mart_macro__category_monthly_global"
+  ],
+  [
+   "model.balenciaga_pricing.mart_macro__category_monthly_global",
+   "exposure.balenciaga_pricing.macro_category_monitor"
+  ],
+  [
+   "model.balenciaga_pricing.mart_macro__category_monthly_global",
+   "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly",
+   "exposure.balenciaga_pricing.metrics_agent"
+  ],
+  [
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly",
+   "exposure.balenciaga_pricing.micro_hero_price_tracker"
+  ],
+  [
+   "model.balenciaga_pricing.qa_incident__legacy_vs_point_in_time",
+   "exposure.balenciaga_pricing.incident_replay_report"
+  ],
+  [
+   "model.balenciaga_pricing.qa_raw__file_profile",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.int_deliveries__profiled"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.int_market_batches__assessed"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.int_observations__classified"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_raw__quarantined_lines"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_raw__repaired_values"
+  ],
+  [
+   "seed.balenciaga_pricing.ly_category_rules",
+   "model.balenciaga_pricing.int_products__categorized"
+  ],
+  [
+   "seed.balenciaga_pricing.ly_category_tree",
+   "model.balenciaga_pricing.int_products__categorized"
+  ],
+  [
+   "seed.balenciaga_pricing.markets",
+   "model.balenciaga_pricing.dim_market"
+  ],
+  [
+   "seed.balenciaga_pricing.micro_pointers",
+   "model.balenciaga_pricing.dim_product"
+  ],
+  [
+   "seed.balenciaga_pricing.micro_pointers",
+   "model.balenciaga_pricing.mart_micro__hero_prices_weekly"
+  ],
+  [
+   "source.balenciaga_pricing.answer_key.defect_manifest",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "source.balenciaga_pricing.crawl.crawl_lines",
+   "model.balenciaga_pricing.base_crawl__lines"
+  ]
+ ]
+}

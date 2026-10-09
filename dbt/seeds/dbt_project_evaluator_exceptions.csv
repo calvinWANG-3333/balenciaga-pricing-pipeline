@@ -1,6 +1,6 @@
 fct_name,column_name,id_to_exclude,comment
 fct_exposure_parents_materializations,parent_resource_name,pub_%,Published views are the write-audit-publish switch: a view shows a gate release at once with no dbt run
-fct_exposure_parents_materializations,parent_resource_name,mart_data_health__deliveries,Reads the gate audit log which is written after dbt runs: a view is always current
+fct_exposure_parents_materializations,parent_resource_name,mart_data_health__%,The data-health marts read the gate audit log which is written after dbt runs: views are always current
 fct_model_fanout,parent,pub_released_deliveries,The release filter: every published view joins it by design
 fct_model_fanout,parent,stg_crawl__product_observations,Quality lane: QA models read staging directly to see what the marts filter out
 fct_direct_join_to_source,child,qa_answer_key__recall,Grades the QA layer against generator ground truth: the answer key is not pipeline input so it has no staging model

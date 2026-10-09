@@ -126,3 +126,15 @@
 {% docs col_n_price_differences %}Products present in both whose price differs.{% enddocs %}
 {% docs col_share_prices_different %}n_price_differences / products present in both.{% enddocs %}
 {% docs col_legacy_would_be_wrong %}True when the old design would have delivered a different crawl, product list or price.{% enddocs %}
+
+{# ------------------------------------------------------------------------------- gate check results #}
+
+{% docs col_check_id %}Id of the check in qa/checks.yml (e.g. served_crawl_age_days, lfl_change_bounds).{% enddocs %}
+{% docs col_dimension %}Data-quality dimension of the check: timeliness, completeness, validity, plausibility or consistency.{% enddocs %}
+{% docs col_severity %}block = a failure stops the release; warn = never blocks, only flags.{% enddocs %}
+{% docs col_subject %}What the measured value is about: a market, a category, a hero product, or all.{% enddocs %}
+{% docs col_observed %}The value the check measured for this delivery and subject.{% enddocs %}
+{% docs col_warn_rule %}Rule that makes the result a warning, as written by the gate (e.g. "< -0.05 or > 0.2"; empty when the check only fails).{% enddocs %}
+{% docs col_fail_rule %}Rule that makes the result a failure.{% enddocs %}
+{% docs col_status %}pass, warn, fail, or skip (not enough history, not applicable).{% enddocs %}
+{% docs col_message %}One-line explanation of the result, written by the gate.{% enddocs %}

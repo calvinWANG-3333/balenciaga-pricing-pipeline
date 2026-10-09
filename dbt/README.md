@@ -13,7 +13,8 @@ models/
                        fct_catalogue_as_of                       - star schema, enforced contracts
   marts/micro/         mart_micro__hero_prices_weekly            - weekly hero prices (complete grid, statuses)
   marts/macro/         mart_macro__category_monthly(_global)     - monthly levels + like-for-like change
-  marts/health/        mart_data_health__deliveries (view: the latest gate verdict per delivery)
+  marts/health/        mart_data_health__deliveries, mart_data_health__check_results (views: the latest gate
+                       verdict per delivery, and each check's result behind it)
   marts/_exposures.yml dashboards and the metrics agent - they read the published layer
   published/           pub_* views: marts filtered to deliveries released by the gate (write-audit-publish)
                        the PUBLIC interface: access public, enforced contracts, every column documented
