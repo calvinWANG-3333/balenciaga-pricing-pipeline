@@ -257,9 +257,13 @@ production only changes through a reviewed, tested PR.
 
 ### Step 8 – see Slim CI do its job
 
-A tiny PR: add a sentence to the description of `mart_macro__category_monthly` in
-`models/marts/_marts__models.yml`. CI now builds the mart and its downstream models only, deferring
-everything else to production. The Summary shows the node count.
+A tiny PR: add one line to the header comment of `models/marts/macro/mart_macro__category_monthly.sql`.
+CI now builds the mart and its downstream models only, deferring everything else to production. The
+Summary shows the node count.
+
+Why the SQL file and not the description in `_marts__models.yml`: `state:modified` compares a model's
+code, config, contract and relation. A description is only compared when it is persisted to the
+warehouse (`persist_docs`), which this project does not do, so a description-only change selects nothing.
 
 **Checkpoint – Phase 6a is done when:**
 - [ ] the repository is public, with the three secrets
