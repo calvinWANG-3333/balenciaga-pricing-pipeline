@@ -15,7 +15,7 @@ const hero = await load(FileAttachment("data/hero_prices_weekly.csv").text());
 const changes = await load(FileAttachment("data/price_changes.csv").text());
 ```
 
-<p class="kicker">Balenciaga pricing pipeline · BI layer</p>
+<p class="kicker">Pricing pipeline · BI layer</p>
 
 # What the clients receive, and why it can be trusted
 

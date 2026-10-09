@@ -1,6 +1,6 @@
 # Balenciaga Pricing Pipeline
 
-> **Status: Phase 6c – six BI pages (Observable Framework) on the snapshot of the public interface, each decomposed question → decision → grain → model → guarantees → chart; next: the portfolio site.** This README is rewritten at the end of the project; the
+> **Status: Phase 6d – the portfolio site (home, one chapter per phase, BI pages, dbt docs) is published to GitHub Pages by the production deploy: https://calvinwang-3333.github.io/balenciaga-pricing-pipeline/ ; next: the launch posts.** This README is rewritten at the end of the project; the
 > step-by-step build log lives in [`docs/`](docs/).
 
 An analytics-engineering project that rebuilds a luxury price-monitoring pipeline with **dbt on Databricks**,
@@ -48,7 +48,7 @@ ingestion/      Databricks SQL that lands raw files into the bronze table (Phase
 agent/          metrics agent (Phase 5)
 qa/             delivery gate: write-audit-publish (Phase 5a)
 ci/             CI profile, requirements, run summaries (Phase 6a); workflows in .github/workflows/
-tools/          lineage pictures from dbt manifests, BI snapshot export (Phase 6b)
+tools/          lineage pictures from dbt manifests, BI snapshot export (Phase 6b); site assembly + preview (Phase 6d)
 bi/             BI pages (Observable Framework); bi/src/data = the snapshot (Phase 6c)
-site/           portfolio site; site/assets/lineage = generated lineage pictures (Phase 6)
+site/           portfolio site (Observable Framework); site/src/lineage = generated lineage pictures (Phase 6d)
 ```

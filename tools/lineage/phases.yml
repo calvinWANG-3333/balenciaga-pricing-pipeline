@@ -3,7 +3,7 @@
 # render.py draws every phase on one shared layout. A new phase = one more entry here.
 
 graphs_dir: tools/lineage/graphs
-output_dir: site/assets/lineage
+output_dir: site/src/lineage          # inside the site's source root, so the pages can embed them
 
 phases:
   - id: p2
@@ -36,3 +36,13 @@ phases:
     ref: 7f85f4d          # PR #9
     title: "Production, CI and governance"
     summary: "Marts no longer read sources: the gate's tables get staging models. Public models carry contracts and documented columns; every pull request runs Slim CI and dbt-project-evaluator."
+  - id: p6b
+    label: Phase 6b
+    ref: f348323          # PR #10
+    title: "Lineage pictures and the BI snapshot"
+    summary: "The documentation becomes generated: lineage pictures compiled from each phase's dbt manifest, and a snapshot of the public interface for BI. One new public mart gives the data-health page its grain."
+  - id: p6c
+    label: Phase 6c
+    ref: 092884f          # PR #12
+    title: "BI pages and one exposure per page"
+    summary: "Six static BI pages read only the public snapshot. Every analytical page is declared as a dbt exposure listing exactly the models it reads."

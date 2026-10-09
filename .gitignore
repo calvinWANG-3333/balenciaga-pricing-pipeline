@@ -1,5 +1,6 @@
 # ---- generated data (reproducible with: python -m generator.generate) ----
-data/
+# anchored to the repo root: bi/src/data (the BI snapshot) and site/src/data must stay tracked
+/data/
 *.ndjson
 *.ndjson.gz
 
@@ -30,10 +31,16 @@ qa/reports/
 gate_report*.md
 triage_*.md
 
-# ---- BI site (Observable Framework): dependencies, build output, data-loader cache ----
+# ---- BI pages and portfolio site (Observable Framework): dependencies, build output, cache ----
 bi/node_modules/
 bi/dist/
 bi/src/.observablehq/cache/
+site/node_modules/
+site/dist/
+site/src/.observablehq/cache/
+
+# ---- the assembled GitHub Pages folder (tools/site/assemble.py) ----
+_site/
 
 # ---- dbt logs when dbt is run from the repo root ----
 logs/

@@ -1,21 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3584 658" width="3584" height="658" role="img" aria-label="Lineage after Phase 3: Intermediate - one history, any point in time">
 <title>Lineage after Phase 3: Intermediate - one history, any point in time</title>
 <rect width="100%" height="100%" fill="#E4E4E1"/>
-<text x="40.0" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">SOURCES · SEEDS</text>
+<text x="40.0" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">SOURCES · SEEDS</text>
 <line x1="40.0" y1="62" x2="234.2" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="280.2" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">STAGING</text>
+<text x="280.2" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">STAGING</text>
 <line x1="280.2" y1="62" x2="748.1" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="794.1" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">INTERMEDIATE</text>
+<text x="794.1" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">INTERMEDIATE</text>
 <line x1="794.1" y1="62" x2="1989.3" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="2035.3" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">MARTS</text>
+<text x="2035.3" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">MARTS</text>
 <line x1="2035.3" y1="62" x2="2597.0" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="2643.0" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">PUBLISHED</text>
+<text x="2643.0" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">PUBLISHED</text>
 <line x1="2643.0" y1="62" x2="3110.9" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="3156.9" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">SEMANTIC LAYER</text>
+<text x="3156.9" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">SEMANTIC LAYER</text>
 <line x1="3156.9" y1="62" x2="3317.6" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="3363.6" y="52" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">EXPOSURES</text>
+<text x="3363.6" y="52" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">EXPOSURES</text>
 <line x1="3363.6" y1="62" x2="3544.4" y2="62" stroke="#0B0B0B" stroke-width="1"/>
-<text x="40" y="486.0" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">QUALITY LANE — READS THE PIPELINE, NEVER FEEDS IT</text>
+<text x="40" y="486.0" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.8" fill="#0B0B0B">QUALITY LANE — READS THE PIPELINE, NEVER FEEDS IT</text>
 <line x1="40" y1="496.0" x2="3544.4" y2="496.0" stroke="#0B0B0B" stroke-width="1" stroke-dasharray="2 4"/>
 <g class="edges">
 <path d="M474.4,98.0 C634.3,98.0 634.3,98.0 794.1,98.0" fill="none" stroke="#0B0B0B" stroke-width="1.3" stroke-opacity="1"/>
@@ -109,9 +109,9 @@
 <g class="node future" data-id="source.balenciaga_pricing.ops.qa_check_results"><rect x="40.0" y="302.0" width="194.2" height="24" rx="0" fill="none" stroke="#C2C2BD" stroke-width="1" stroke-dasharray="3 3"/><text x="50.0" y="317.8" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace" font-size="11" fill="#C2C2BD">ops.qa_check_results</text></g>
 </g>
 <rect x="40.0" y="604.0" width="22" height="12" fill="#0B0B0B" stroke="#0B0B0B"/>
-<text x="70.0" y="614.0" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#0B0B0B">added in this phase (14)</text>
+<text x="70.0" y="614.0" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#0B0B0B">added in this phase (14)</text>
 <rect x="228.8" y="604.0" width="22" height="12" fill="#F7F7F5" stroke="#0B0B0B"/>
-<text x="258.8" y="614.0" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#0B0B0B">built earlier (8)</text>
+<text x="258.8" y="614.0" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#0B0B0B">built earlier (8)</text>
 <rect x="374.2" y="604.0" width="22" height="12" fill="none" stroke="#C2C2BD" stroke-dasharray="3 3"/>
-<text x="404.2" y="614.0" font-family="'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#0B0B0B">still to come</text>
+<text x="404.2" y="614.0" font-family="'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#0B0B0B">still to come</text>
 </svg>
