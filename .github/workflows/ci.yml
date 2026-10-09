@@ -5,8 +5,10 @@
 #   slim-ci   on Databricks, in throw-away schemas ci_pr_<number>_*: builds ONLY the models the PR
 #             changed and everything downstream of them; unchanged parents are read from production
 #             (--defer). Then dbt-project-evaluator checks the project's structure, in strict mode.
+#   site      no warehouse, no secret: the BI pages and the portfolio site still build (Phase 6d), with
+#             the lineage pictures re-rendered from the committed graphs
 #
-# Branch protection on main requires both jobs: nothing reaches production without passing them.
+# Branch protection on main requires the checks and slim-ci jobs: nothing reaches production without them.
 
 name: CI
 
@@ -131,3 +133,42 @@ jobs:
       - name: Summary - project evaluator
         if: always()
         run: python ci/summarize_run.py dbt/target/run_results.json "dbt-project-evaluator" >> "$GITHUB_STEP_SUMMARY"
+
+  site:
+    name: BI pages and site build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Lineage pictures from the committed graphs
+        run: |
+          pip install "pyyaml>=6,<7"
+          python -m tools.lineage.render
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            site/package-lock.json
+            bi/package-lock.json
+
+      - name: Build the BI pages
+        working-directory: bi
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build the portfolio site
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - name: Assemble (placeholder dbt docs in CI)
+        run: python -m tools.site.assemble

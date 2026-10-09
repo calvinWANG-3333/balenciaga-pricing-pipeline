@@ -1,6 +1,6 @@
 """Lineage graphs (one JSON per phase, see extract.py) -> SVG pictures.
 
-    python -m tools.lineage.render            # reads tools/lineage/phases.yml, writes site/assets/lineage/*.svg
+    python -m tools.lineage.render            # reads tools/lineage/phases.yml, writes site/src/lineage/*.svg
 
 Pictures:
     lineage_full.svg          the whole DAG as it is today
@@ -41,7 +41,7 @@ QUALITY = "quality"
 
 # --- the design system (shared with the site) -------------------------------------------------------
 BG, INK, PAPER, MUTED, GHOST = "#E4E4E1", "#0B0B0B", "#F7F7F5", "#7A7A74", "#C2C2BD"
-FONT_SANS = "'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+FONT_SANS = "'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif"
 FONT_MONO = "'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace"
 LABEL_PX, CHAR_W = 11, 6.7          # monospace label size and the width of one character
 BOX_H, ROW_GAP, COL_GAP, PAD_X = 24, 12, 46, 10

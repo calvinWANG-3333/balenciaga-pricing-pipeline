@@ -1,0 +1,18 @@
+{
+  "name": "balenciaga-pricing-site",
+  "private": true,
+  "description": "Portfolio site of the pricing pipeline: the story, one chapter per phase, generated lineage. Observable Framework, static.",
+  "type": "module",
+  "scripts": {
+    "dev": "observable preview",
+    "build": "observable build",
+    "clean": "rm -rf src/.observablehq/cache dist"
+  },
+  "dependencies": {
+    "@observablehq/framework": "1.13.4",
+    "htl": "0.3.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

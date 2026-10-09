@@ -1,4 +1,4 @@
-/* Balenciaga-inspired, not Balenciaga: cool concrete grey, black ink, heavy condensed caps, mono figures.
+/* Balenciaga-inspired, not Balenciaga: cool concrete grey, black ink, very wide extra-heavy caps, mono figures.
    No logo, no wordmark. Colour is reserved for the one state that stops a delivery (BLOCK, red). */
 @import url("observablehq:default.css");
 @import url("observablehq:theme-air.css");
@@ -17,7 +17,8 @@
   --theme-background-alt: #DADAD6;
   --theme-foreground: var(--ink);
   --theme-foreground-focus: var(--ink);
-  --sans-serif: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --sans-serif: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --wide: 125%;                     /* Archivo's widest setting: the display voice, shared with the site */
   --serif: var(--sans-serif);
   --monospace: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --observablehq-max-width: 1320px;
@@ -40,18 +41,18 @@ code { font-family: var(--monospace); font-size: 0.86em; background: none; }
 .topnav { display: flex; gap: 1.6rem; align-items: baseline; width: 100%; overflow-x: auto; white-space: nowrap; }
 .topnav a { text-decoration: none; text-transform: uppercase; letter-spacing: 0.14em; }
 .topnav a:hover { text-decoration: underline; }
-.topnav .brand { font-weight: 900; letter-spacing: 0.02em; font-size: 15px; margin-right: 1rem; }
+.topnav .brand { font-weight: 900; font-stretch: var(--wide); letter-spacing: -0.01em; font-size: 15px; margin-right: 1rem; }
 .topnav .brand span { margin: 0 0.15em; }
 .topnav .out { margin-left: auto; }
 
 /* --- type: heavy, tight, uppercase headlines ----------------------------------------------------- */
 h1, h2, h3 { font-family: var(--sans-serif); color: var(--ink); max-width: none; }
 h1 {
-  font-weight: 900; font-size: clamp(2.6rem, 7vw, 5.6rem); line-height: 0.88; letter-spacing: -0.035em;
+  font-weight: 900; font-stretch: var(--wide); font-size: clamp(2.1rem, 6vw, 5rem); line-height: 0.9; letter-spacing: -0.02em;
   text-transform: uppercase; margin: 2.5rem 0 1rem;
 }
 h2 {
-  font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.12em;
+  font-weight: 800; font-stretch: var(--wide); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.04em;
   border-top: 1px solid var(--ink); padding-top: 0.8rem; margin-top: 3.5rem;
 }
 h3 { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em; margin-top: 1.6rem; }
@@ -71,7 +72,7 @@ select { background: var(--paper); border: 1px solid var(--ink); padding: 0.2rem
          border-top: 1px solid var(--ink); }
 .tile { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.9rem 1rem 1rem 0; border-bottom: 1px solid var(--rule); }
 .tile__label { font: 600 10.5px var(--sans-serif); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-.tile__value { font: 800 2.1rem/1 var(--sans-serif); letter-spacing: -0.02em; }
+.tile__value { font: 900 1.9rem/1 var(--sans-serif); font-stretch: var(--wide); letter-spacing: -0.02em; }
 .tile__note { font: 400 12px var(--sans-serif); color: var(--muted); }
 .tile.alert .tile__value { color: var(--red); }
 
@@ -105,7 +106,7 @@ form.inputs-table, .inputs-table { max-width: none !important; }
 /* --- index cards on the overview ---------------------------------------------------------------- */
 .pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0; border-top: 1px solid var(--ink); }
 .pages a { display: block; padding: 1.1rem 1.2rem 1.4rem 0; border-bottom: 1px solid var(--rule); text-decoration: none; }
-.pages a b { display: block; font: 800 1.35rem var(--sans-serif); text-transform: uppercase; letter-spacing: -0.01em; }
+.pages a b { display: block; font: 900 1.25rem var(--sans-serif); font-stretch: var(--wide); text-transform: uppercase; letter-spacing: -0.01em; }
 .pages a span { color: var(--muted); font-size: 0.95rem; }
 .pages a:hover b { text-decoration: underline; }
 

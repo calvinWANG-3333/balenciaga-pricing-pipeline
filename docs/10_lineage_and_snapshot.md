@@ -9,7 +9,7 @@
 ## 0. The big picture
 
 ```
-dbt parse ──► manifest.json ──► tools/lineage/extract.py ──► graphs/*.json ──► tools/lineage/render.py ──► site/assets/lineage/*.svg
+dbt parse ──► manifest.json ──► tools/lineage/extract.py ──► graphs/*.json ──► tools/lineage/render.py ──► site/src/lineage/*.svg
                   ▲                                             ▲
    git archive <phase commit>                       one graph per phase (committed)
    (tools/lineage/collect.py)                       + current.json (today)
@@ -20,7 +20,7 @@ production warehouse ──► public models only ──► tools/snapshot/expor
 | Tool | Reads | Writes | Run |
 |---|---|---|---|
 | `tools/lineage/collect.py` | the dbt project at a git commit (or today's `dbt/target/manifest.json`) | `tools/lineage/graphs/<phase>.json` | once per phase; `--current` on every site build |
-| `tools/lineage/render.py` | the graphs + `phases.yml` | `site/assets/lineage/lineage_full.svg`, `lineage_<phase>.svg` | every site build |
+| `tools/lineage/render.py` | the graphs + `phases.yml` | `site/src/lineage/lineage_full.svg`, `lineage_<phase>.svg` | every site build |
 | `tools/snapshot/export.py` | the warehouse's **public** models | 10 CSV files + a manifest | when the data changes |
 
 ---
@@ -200,7 +200,7 @@ evaluator still runs. That is the right behaviour.
 
 ### Step 3 – look at the pictures
 
-Open `site/assets/lineage/lineage_full.svg` and `lineage_p2.svg` … `lineage_p6a.svg` in your browser
+Open `site/src/lineage/lineage_full.svg` and `lineage_p2.svg` … `lineage_p6a.svg` in your browser
 (drag the file onto a tab). Scroll from p2 to p6a: the pipeline grows in place.
 
 **Checkpoint – Phase 6b is done when:**

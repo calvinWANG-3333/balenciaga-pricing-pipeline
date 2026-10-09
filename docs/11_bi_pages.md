@@ -342,7 +342,7 @@ new `bi/package.json`, `bi/observablehq.config.js`, `bi/src/…`; changes to `.g
 
 ### Step 2 – preview the site
 
-Node 18 or later is needed (`node -v`; if missing: `brew install node`).
+Node 20 or later is needed (`node -v`; if missing: `brew install node`).
 
 ```bash
 cd bi
