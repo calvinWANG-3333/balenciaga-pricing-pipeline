@@ -1,0 +1,149 @@
+{
+ "nodes": [
+  {
+   "id": "model.balenciaga_pricing.base_crawl__lines",
+   "name": "base_crawl__lines",
+   "type": "model",
+   "layer": "staging",
+   "folder": "staging/crawl/base",
+   "materialized": "view",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_answer_key__recall",
+   "name": "qa_answer_key__recall",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/answer_key",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_raw__file_profile",
+   "name": "qa_raw__file_profile",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/raw",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_raw__quarantined_lines",
+   "name": "qa_raw__quarantined_lines",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/raw",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.qa_raw__repaired_values",
+   "name": "qa_raw__repaired_values",
+   "type": "model",
+   "layer": "quality",
+   "folder": "quality/raw",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "model.balenciaga_pricing.stg_crawl__product_observations",
+   "name": "stg_crawl__product_observations",
+   "type": "model",
+   "layer": "staging",
+   "folder": "staging/crawl",
+   "materialized": "table",
+   "access": "protected"
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.batch_manifest",
+   "name": "answer_key.batch_manifest",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.defect_manifest",
+   "name": "answer_key.defect_manifest",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.price_changes",
+   "name": "answer_key.price_changes",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.answer_key.product_master",
+   "name": "answer_key.product_master",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/answer_key",
+   "materialized": null,
+   "access": null
+  },
+  {
+   "id": "source.balenciaga_pricing.crawl.crawl_lines",
+   "name": "crawl.crawl_lines",
+   "type": "source",
+   "layer": "sources",
+   "folder": "staging/crawl",
+   "materialized": null,
+   "access": null
+  }
+ ],
+ "edges": [
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.qa_raw__file_profile"
+  ],
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.qa_raw__quarantined_lines"
+  ],
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.qa_raw__repaired_values"
+  ],
+  [
+   "model.balenciaga_pricing.base_crawl__lines",
+   "model.balenciaga_pricing.stg_crawl__product_observations"
+  ],
+  [
+   "model.balenciaga_pricing.qa_raw__file_profile",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_raw__file_profile"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_raw__quarantined_lines"
+  ],
+  [
+   "model.balenciaga_pricing.stg_crawl__product_observations",
+   "model.balenciaga_pricing.qa_raw__repaired_values"
+  ],
+  [
+   "source.balenciaga_pricing.answer_key.defect_manifest",
+   "model.balenciaga_pricing.qa_answer_key__recall"
+  ],
+  [
+   "source.balenciaga_pricing.crawl.crawl_lines",
+   "model.balenciaga_pricing.base_crawl__lines"
+  ]
+ ]
+}

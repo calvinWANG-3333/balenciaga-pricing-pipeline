@@ -49,8 +49,8 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
-      - name: Unit tests - delivery gate and metrics agent (offline)
-        run: python -m pytest agent/tests qa/tests -q
+      - name: Unit tests - delivery gate, metrics agent, lineage + snapshot tools (offline)
+        run: python -m pytest agent/tests qa/tests tools/tests -q
 
       - name: dbt parse (compiles the whole project, no warehouse)
         working-directory: dbt

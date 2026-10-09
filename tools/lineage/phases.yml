@@ -1,0 +1,38 @@
+# The phases of the project, each pinned to the merge commit that closed it on main.
+# collect.py compiles the dbt project AT that commit (dbt parse) and keeps its lineage graph in graphs/;
+# render.py draws every phase on one shared layout. A new phase = one more entry here.
+
+graphs_dir: tools/lineage/graphs
+output_dir: site/assets/lineage
+
+phases:
+  - id: p2
+    label: Phase 2
+    ref: 714bb7f          # PR #3
+    title: "Sources, staging and the raw QA lane"
+    summary: "Raw crawl lines are parsed, repaired and flagged, never filtered. Every defect is either fixed with the raw value kept, or quarantined, and graded against the generator's answer key."
+  - id: p3
+    label: Phase 3
+    ref: 88fb885          # PR #4
+    title: "Intermediate - one history, any point in time"
+    summary: "Delivery trust, one fate per line, rule-based categorization from seeds, SCD2 price periods and the point-in-time catalogue. The old shared catalogue is replayed beside it to measure the incident."
+  - id: p4
+    label: Phase 4
+    ref: f38aefe          # PR #5
+    title: "Marts - Micro and Macro from the same history"
+    summary: "Star schema with enforced contracts, the weekly Micro grid and the monthly Macro statistics, both projections of the same point-in-time catalogue. Exposures declare who consumes what."
+  - id: p5a
+    label: Phase 5a
+    ref: b06a051          # PR #6
+    title: "Delivery gate - write, audit, publish"
+    summary: "A Python gate audits every delivery against 17 checks and writes to append-only ops tables. Exposures are repointed to the published views, which only show released deliveries."
+  - id: p5b
+    label: Phase 5b
+    ref: 8368103          # PR #7
+    title: "Semantic layer and the metrics agent"
+    summary: "Ten governed metrics defined once in dbt semantic models. The agent can only ask for them; it never writes SQL."
+  - id: p6a
+    label: Phase 6a
+    ref: 7f85f4d          # PR #9
+    title: "Production, CI and governance"
+    summary: "Marts no longer read sources: the gate's tables get staging models. Public models carry contracts and documented columns; every pull request runs Slim CI and dbt-project-evaluator."

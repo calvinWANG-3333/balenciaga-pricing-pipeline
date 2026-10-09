@@ -55,6 +55,7 @@ exposures:
     owner: {name: Calvin Wang}
     depends_on:
       - ref('mart_data_health__deliveries')
+      - ref('mart_data_health__check_results')
       - ref('pub_released_deliveries')
 
   - name: metrics_agent

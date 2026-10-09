@@ -1,6 +1,6 @@
 # Balenciaga Pricing Pipeline
 
-> **Status: Phase 6a – production + Slim CI on GitHub Actions, dbt-project-evaluator, governed public interface; next: lineage, BI and the portfolio site.** This README is rewritten at the end of the project; the
+> **Status: Phase 6b – lineage pictures generated from dbt manifests (per phase, from git history) and the BI snapshot of the public interface; next: BI pages and the portfolio site.** This README is rewritten at the end of the project; the
 > step-by-step build log lives in [`docs/`](docs/).
 
 An analytics-engineering project that rebuilds a luxury price-monitoring pipeline with **dbt on Databricks**,
@@ -46,6 +46,9 @@ docs/           build log: roadmap, setup guide, one chapter per phase
 dbt/            the dbt project (created in Phase 0)
 ingestion/      Databricks SQL that lands raw files into the bronze table (Phase 1)
 agent/          metrics agent (Phase 5)
-bi/             Evidence.dev dashboards (Phase 6)
-site/           portfolio landing page (Phase 6)
+qa/             delivery gate: write-audit-publish (Phase 5a)
+ci/             CI profile, requirements, run summaries (Phase 6a); workflows in .github/workflows/
+tools/          lineage pictures from dbt manifests, BI snapshot export (Phase 6b)
+bi/             Evidence.dev dashboards; bi/sources/pricing = the snapshot (Phase 6)
+site/           portfolio site; site/assets/lineage = generated lineage pictures (Phase 6)
 ```

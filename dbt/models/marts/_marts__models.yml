@@ -285,3 +285,61 @@ models:
       - name: released_at
         data_type: timestamp
         description: "{{ doc('col_released_at') }}"
+
+  - name: mart_data_health__check_results
+    description: >
+      Grain: one row per (dataset, scope, delivery date, check, subject), from the latest gate run on each
+      delivery. The detail behind mart_data_health__deliveries: what each check measured and against which rule.
+    config:
+      access: public          # read by the data-health page and the triage agent
+      contract: {enforced: true}
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dataset, scope, as_of_date, check_id, subject]
+    columns:
+      - name: dataset
+        data_type: string
+        description: "{{ doc('col_dataset') }}"
+      - name: scope
+        data_type: string
+        description: "{{ doc('col_scope') }}"
+      - name: as_of_date
+        data_type: date
+        description: "{{ doc('col_as_of_date') }}"
+      - name: run_id
+        data_type: string
+        description: "{{ doc('col_run_id') }}"
+      - name: checked_at
+        data_type: timestamp
+        description: "{{ doc('col_checked_at') }}"
+      - name: check_id
+        data_type: string
+        description: "{{ doc('col_check_id') }}"
+      - name: dimension
+        data_type: string
+        description: "{{ doc('col_dimension') }}"
+      - name: severity
+        data_type: string
+        description: "{{ doc('col_severity') }}"
+      - name: subject
+        data_type: string
+        description: "{{ doc('col_subject') }}"
+      - name: observed
+        data_type: double
+        description: "{{ doc('col_observed') }}"
+      - name: warn_rule
+        data_type: string
+        description: "{{ doc('col_warn_rule') }}"
+      - name: fail_rule
+        data_type: string
+        description: "{{ doc('col_fail_rule') }}"
+      - name: status
+        data_type: string
+        description: "{{ doc('col_status') }}"
+        data_tests:
+          - accepted_values:
+              arguments: {values: [pass, warn, fail, skip]}
+      - name: message
+        data_type: string
+        description: "{{ doc('col_message') }}"
