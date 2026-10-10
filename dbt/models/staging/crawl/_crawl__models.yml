@@ -19,7 +19,7 @@ models:
           - unique
           - not_null
       - name: file_crawl_date
-        description: Crawl date parsed from the file name (ALT_<date>_...). What the delivery CLAIMS to be.
+        description: Crawl date parsed from the file name (<source>_<date>_...). What the delivery CLAIMS to be.
         data_tests:
           - not_null
 

@@ -47,8 +47,8 @@ the same result.
 **The catch – and it is the heart of this project.** The clerk checks the *label*, not what is inside the
 crate. Our generator delivers two traps:
 
-- `ALT_2026-08-10_…_balenciaga (1).ndjson.gz` – a byte-identical copy with a new name (F01)
-- `ALT_2026-09-15_…_balenciaga.ndjson.gz` – the 08-31 crawl re-exported under a new date (F02, the incident)
+- `<source>_2026-08-10_…_balenciaga (1).ndjson.gz` – a byte-identical copy with a new name (F01)
+- `<source>_2026-09-15_…_balenciaga.ndjson.gz` – the 08-31 crawl re-exported under a new date (F02, the incident)
 
 Both have new labels, so `COPY INTO` *will* load them. That is correct behaviour for a bronze layer – bronze
 records what was delivered, not what is true. Deciding which delivery to trust is a **content** question,

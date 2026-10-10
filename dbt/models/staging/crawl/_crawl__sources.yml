@@ -24,7 +24,7 @@ sources:
             data_tests:
               - not_null
           - name: source_file_name
-            description: Delivered file name, e.g. ALT_2026-08-31_1788173725123_balenciaga.ndjson.gz
+            description: Delivered file name, e.g. <source>_2026-08-31_1788173725123_balenciaga.ndjson.gz
             data_tests:
               - not_null
           - name: source_file_path

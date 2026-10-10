@@ -102,7 +102,7 @@ display(lineageSection("p5b", await FileAttachment("lineage/lineage_p5b.svg").te
 | Unit tests, offline | **70 passed**: 55 for the agent (12 of them replay real Claude forms) and 15 for the gate |
 | `dbt build` | 165 pass |
 | Triage, new design | the 5 WARN deliveries explained with their upstream cause |
-| Triage, old design | the 15 Sep BLOCK traced to the re-exported file `ALT_2026-09-15_…`: August content under a September name |
+| Triage, old design | the 15 Sep BLOCK traced to the re-exported file dated 2026-09-15: August content under a September name |
 
 <p class="cap">The same 25 questions grade both translators. Refusals count as answers: <em>LFL change for shoes in Germany</em> must be refused, because Germany is not monitored, and the reply lists the 16 markets that are.</p>
 

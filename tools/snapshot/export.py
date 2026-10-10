@@ -13,6 +13,10 @@ Guarantees, checked before anything is written:
   - every exported model is PUBLIC in the dbt manifest (access: public): BI never reads internal models
   - at least one delivery is released (an empty published layer means the gate has not run)
   - every delivery date in the Micro and Macro tables is a released delivery
+
+Masks: a table may declare `mask: [{column, pattern, replace}]` in snapshot.yml. The regex rewrite is applied
+to that column before the CSV is written, and the manifest lists the masked columns. Used to keep internal
+naming out of the public files (the crawler's file-name prefix is reduced to a neutral `crawl_`).
 Connection settings are the delivery gate's (qa/config.py): QA_BACKEND, QA_CATALOG, QA_SCHEMA_PREFIX,
 DATABRICKS_*.
 """
@@ -25,6 +29,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import date, datetime, timezone
@@ -121,6 +126,21 @@ def git_sha() -> str | None:
         return None
 
 
+def apply_masks(rows: list[dict], masks: list[dict]) -> list[dict]:
+    """Rewrite masked columns with their regex. Values that are not strings (None, numbers) are left alone."""
+    if not masks:
+        return rows
+    compiled = [(m["column"], re.compile(m["pattern"]), m["replace"]) for m in masks]
+    out = []
+    for r in rows:
+        r = dict(r)
+        for col, pat, rep in compiled:
+            if isinstance(r.get(col), str):
+                r[col] = pat.sub(rep, r[col])
+        out.append(r)
+    return out
+
+
 def export(settings: Settings, config: dict, manifest_path: Path, check_only: bool = False) -> dict:
     tables = config["tables"]
     public = public_models(manifest_path)
@@ -133,7 +153,7 @@ def export(settings: Settings, config: dict, manifest_path: Path, check_only: bo
             relation = f"{settings.schema(t['layer'])}.{t['model']}"
             cols = public[t["model"]]
             sql = f"select {', '.join(cols)} from {relation} order by {', '.join(t['order_by'])}"
-            data[t["file"]] = db.query(sql)
+            data[t["file"]] = apply_masks(db.query(sql), t.get("mask", []))
             columns[t["file"]] = cols
             print(f"  {t['file']:<24} {len(data[t['file']]):>6} rows   <- {relation}", file=sys.stderr)
     finally:
@@ -147,6 +167,8 @@ def export(settings: Settings, config: dict, manifest_path: Path, check_only: bo
         path = out_dir / f"{t['file']}.csv"
         files[t["file"]] = {"model": t["model"], "rows": len(data[t["file"]]), "columns": columns[t["file"]],
                             "sha256": hashlib.sha256(text.encode()).hexdigest()}
+        if t.get("mask"):
+            files[t["file"]]["masked"] = [m["column"] for m in t["mask"]]
         if check_only:
             if not path.exists() or path.read_text() != text:
                 raise SnapshotError(f"{path.relative_to(ROOT)} differs from the warehouse: re-export it.")

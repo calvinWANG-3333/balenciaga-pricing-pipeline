@@ -19,7 +19,7 @@ Three pieces:
 | Governed metrics | 10 (+2 hidden building blocks) on 3 semantic models |
 | Evaluation set | **25 / 25** with the rule translator, including 4 that must be refused; the same exam grades the Claude translator |
 | Unit tests | 55 for the agent (incl. 12 for the Claude path, replaying real LLM forms) + 15 for the gate = **70 passed**, offline (no warehouse, no API key) |
-| Triage | the 5 WARN deliveries explained with their upstream cause; on the old design's replay, the 2026-09-15 BLOCK traced to the re-exported file `ALT_2026-09-15_…` (August content under a September name) |
+| Triage | the 5 WARN deliveries explained with their upstream cause; on the old design's replay, the 2026-09-15 BLOCK traced to the re-exported file dated 2026-09-15 (August content under a September name) |
 
 ---
 
@@ -217,7 +217,7 @@ checks and runs targeted drill-down queries:
 
 | Check | Drill-down | What it concludes (reference run) |
 |---|---|---|
-| `served_crawl_age_days` | which crawl was served; file profile of the newer files | 09-15 JPN: the 09-14 file has no JPN → fell back to 09-07. Old design: served the **stale re-export** `ALT_2026-09-15_…` (content 08-31) |
+| `served_crawl_age_days` | which crawl was served; file profile of the newer files | 09-15 JPN: the 09-14 file has no JPN → fell back to 09-07. Old design: served the **stale re-export** dated 2026-09-15 (content 08-31) |
 | `hero_carried_forward` | the quarantined reading behind each carried price | 08-18 USA: `currency_market_mismatch` (raw 2,500 **EUR** on the US site) |
 | `price_change_share_anomaly` | share and size of changes per category | 09-08: Bags and SLG +6.2% in all 8 markets → **brand-wide price campaign, real** |
 | `hero_large_moves` | per product: how many markets, how consistent | 09-15: 3XL Sneaker −11.2% in 7 markets, almost identical → coordinated markdown, real |

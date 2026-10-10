@@ -199,7 +199,10 @@
     "share_prices_different",
     "legacy_would_be_wrong"
    ],
-   "sha256": "4e3c238b1d1a3d97dee6ee9117f1a5ca0441480e02cd6e2ad7475dcb82e7700f"
+   "sha256": "9139058f1b513fad4ecfe6dde2979524614dc737313d353f6bb0fce615cd1d17",
+   "masked": [
+    "legacy_file"
+   ]
   }
  }
 }

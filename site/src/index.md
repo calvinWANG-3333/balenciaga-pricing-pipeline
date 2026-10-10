@@ -21,7 +21,7 @@ const full = await FileAttachment("lineage/lineage_full.svg").text();
       <p class="kicker">Before</p>
       <h3>A mutable catalogue</h3>
       <div class="flow" aria-hidden="true">
-        <div class="row"><span class="chip">crawl 31 Aug</span><span class="chip">crawl 14 Sep</span><span class="chip">ALT_15 Sep<small>still the 31 Aug crawl</small></span></div>
+        <div class="row"><span class="chip">crawl 31 Aug</span><span class="chip">crawl 14 Sep</span><span class="chip">re-export 15 Sep<small>still the 31 Aug crawl</small></span></div>
         <span class="arrow">↓ each import overwrites ↓</span>
         <span class="chip wide dark">shared catalogue<small>one state: the last file wins</small></span>
         <span class="arrow">↓          ↓</span>
@@ -34,7 +34,7 @@ const full = await FileAttachment("lineage/lineage_full.svg").text();
       <p class="kicker">After</p>
       <h3>One history, read at a date</h3>
       <div class="flow" aria-hidden="true">
-        <div class="row"><span class="chip">crawl 31 Aug</span><span class="chip">crawl 14 Sep</span><span class="chip">ALT_15 Sep</span></div>
+        <div class="row"><span class="chip">crawl 31 Aug</span><span class="chip">crawl 14 Sep</span><span class="chip">re-export 15 Sep</span></div>
         <span class="arrow">↓ appended, never overwritten ↓</span>
         <span class="chip wide">bronze · append-only<small>one row per delivered line</small></span>
         <span class="arrow">↓</span>
@@ -117,7 +117,7 @@ display(html`<div class="grid">${phases.map((p) => html`<a class="item" href="./
     <div><div class="nodes"><span>${p.nodes[1] ? "DAG" : "No models yet"}</span><span>${p.nodes[1] ? `${p.nodes[1]} nodes` : ""}</span></div>
     <div class="bar"><i style="width:${(100 * p.nodes[1]) / MAX_NODES}%"></i></div></div></div>
   <span class="micro">${p.label}</span><span class="t">${p.title}</span><span class="q">${p.question}</span></a>`)}
-  <a class="item result" href="./bi/"><div class="plate"><span class="n">BI</span><div class="nodes"><span>The result</span><span>6 pages</span></div></div>
+  <a class="item result" href="./bi/" rel="external"><div class="plate"><span class="n">BI</span><div class="nodes"><span>The result</span><span>6 pages</span></div></div>
   <span class="micro">Open</span><span class="t">The BI pages</span><span class="q">What clients receive, read from the released deliveries only.</span></a></div>`);
 ```
 
@@ -150,8 +150,8 @@ display(frame);
   <div class="label">Walk in<span>The same project, three ways in.</span></div>
   <div class="content">
     <nav class="doors" aria-label="Project areas">
-      <a href="./bi/"><b>BI pages</b><span>Micro, Macro, price changes, the incident and data health, with a model card on every page.</span></a>
-      <a href="./dbt-docs/"><b>dbt docs</b><span>Every model, column and test, as built in production.</span></a>
+      <a href="./bi/" rel="external"><b>BI pages</b><span>Micro, Macro, price changes, the incident and data health, with a model card on every page.</span></a>
+      <a href="./dbt-docs/" rel="external"><b>dbt docs</b><span>Every model, column and test, as built in production.</span></a>
       <a href="https://github.com/calvinWANG-3333/balenciaga-pricing-pipeline"><b>Source ↗</b><span>The repository, with one teaching chapter per phase in docs/.</span></a>
     </nav>
   </div>

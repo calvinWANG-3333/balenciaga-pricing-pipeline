@@ -67,7 +67,7 @@ per line, kept as raw text, with its file metadata. The table is append-only.
 CREATE TABLE IF NOT EXISTS workspace.raw.crawl_lines (
   raw_line                STRING    COMMENT 'One NDJSON line exactly as delivered by the crawler (never edited)',
   source_file_path        STRING    COMMENT 'Full volume path of the delivered file',
-  source_file_name        STRING    COMMENT 'File name, e.g. ALT_2026-08-31_1788173725123_balenciaga.ndjson.gz',
+  source_file_name        STRING    COMMENT 'File name, e.g. <source>_2026-08-31_1788173725123_balenciaga.ndjson.gz',
   source_file_size        BIGINT    COMMENT 'Compressed file size in bytes',
   source_file_modified_at TIMESTAMP COMMENT 'Last-modified time of the file in the volume (= upload time)',
   loaded_at               TIMESTAMP COMMENT 'When COPY INTO loaded this file into bronze'

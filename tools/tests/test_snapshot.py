@@ -30,3 +30,27 @@ def test_refuses_an_unreleased_delivery():
                         "hero_prices_weekly": [{"delivery_date": date(2026, 10, 6)}]})
     with pytest.raises(SnapshotError, match="No released delivery"):
         check_released({"released_deliveries": []})
+
+
+def test_masks_rewrite_only_the_declared_column():
+    from tools.snapshot.export import apply_masks
+    rows = [{"legacy_file": "XYZ_2026-09-15_1789_balenciaga.ndjson.gz", "market": "XYZ_2026-09-15_"},
+            {"legacy_file": None, "market": "FRA"}]
+    mask = [{"column": "legacy_file", "pattern": r"^[A-Za-z]+_(?=\d{4}-\d{2}-\d{2}_)", "replace": "crawl_"}]
+    out = apply_masks(rows, mask)
+    assert out[0]["legacy_file"] == "crawl_2026-09-15_1789_balenciaga.ndjson.gz"
+    assert out[0]["market"] == "XYZ_2026-09-15_"          # other columns untouched
+    assert out[1]["legacy_file"] is None                  # non-strings untouched
+    assert rows[0]["legacy_file"].startswith("XYZ_")      # input not mutated
+
+
+def test_committed_incident_snapshot_is_masked():
+    import yaml
+    from tools.snapshot.export import ROOT, CONFIG
+    config = yaml.safe_load(CONFIG.read_text())
+    t = next(t for t in config["tables"] if t["file"] == "incident_replay")
+    assert t.get("mask"), "incident_replay must declare its mask"
+    text = (ROOT / config["output_dir"] / "incident_replay.csv").read_text()
+    assert ",crawl_2026-" in text
+    import re
+    assert not re.search(r",[A-Za-z]+_\d{4}-\d{2}-\d{2}_", text.replace(",crawl_", ","))
