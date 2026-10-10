@@ -55,6 +55,6 @@ export function pager(id) {
   const prev = phases[i - 1], next = phases[i + 1];
   return html`<nav class="pager" aria-label="Chapters">
     ${prev ? html`<a class="prev" href="./${prev.slug}"><span class="micro">← ${prev.label}</span><b>${prev.title}</b></a>` : html`<a class="prev" href="./"><span class="micro">← Home</span><b>The story</b></a>`}
-    ${next ? html`<a class="next" href="./${next.slug}"><span class="micro">${next.label} →</span><b>${next.title}</b></a>` : html`<a class="next" href="./bi/"><span class="micro">The result →</span><b>BI pages</b></a>`}
+    ${next ? html`<a class="next" href="./${next.slug}"><span class="micro">${next.label} →</span><b>${next.title}</b></a>` : html`<a class="next" href="./bi/" rel="external"><span class="micro">The result →</span><b>BI pages</b></a>`}
   </nav>`;
 }

@@ -215,6 +215,7 @@ Then sync your local `main`: `git switch main` and `git pull`.
 | a chapter shows a broken table or raw markdown | a missing blank line inside `<div class="content">` | keep a blank line after the opening tag and before `</div></section>` |
 | `sql` code block tries to load DuckDB | Framework runs ```` ```sql ```` blocks | use ```` ```pgsql ```` for display-only SQL |
 | headings in Helvetica | offline: Google Fonts unreachable | cosmetic |
+| a link to another build (`../` from `/bi/`, `./bi/` from the site) does nothing | Framework rewrites links that leave its own root: `../` became `./`, the page you are on | mark cross-build links `rel="external"`; Framework then leaves them alone |
 
 ---
 

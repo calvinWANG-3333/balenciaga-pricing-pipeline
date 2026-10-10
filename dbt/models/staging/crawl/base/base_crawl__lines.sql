@@ -41,7 +41,7 @@ select
     source_file_path,
     source_file_size,
     loaded_at,
-    -- file names look like ALT_<crawl date>_<export epoch ms>_balenciaga[ (n)].ndjson.gz
+    -- file names look like <source>_<crawl date>_<export epoch ms>_balenciaga[ (n)].ndjson.gz
     try_cast(regexp_extract(source_file_name, '^[A-Za-z]+_(\\d{4}-\\d{2}-\\d{2})_', 1) as date)
                                                                     as file_crawl_date,
     timestamp_millis(try_cast(regexp_extract(source_file_name, '_(\\d{13})_', 1) as bigint))

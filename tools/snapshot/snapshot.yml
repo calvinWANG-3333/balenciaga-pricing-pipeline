@@ -58,3 +58,5 @@ tables:
     model: qa_incident__legacy_vs_point_in_time
     layer: quality
     order_by: [as_of_date, market]
+    mask:                                  # the delivered file name keeps its date; the internal prefix does not
+      - {column: legacy_file, pattern: "^[A-Za-z]+_(?=\\d{4}-\\d{2}-\\d{2}_)", replace: "crawl_"}

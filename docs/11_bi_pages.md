@@ -186,7 +186,7 @@ How I broke it down:
 
 1. An incident has a *when* and a *where*. A date × market heatmap shows both at once: 232 cells replayed,
    10 wrong.
-2. The table names the evidence: on 15 Sep, 8 markets served `ALT_2026-09-15_…`, a file re-exported under
+2. The table names the evidence: on 15 Sep, 8 markets served the file dated 2026-09-15, a file re-exported under
    a later date that still contained the 31 Aug crawl (about 26 % of prices different). On 18 Aug, HKG and
    KOR got the partial 17 Aug file (about 900 products missing each).
 3. Then the second half of the question, *would anything have caught it?* The same gate with the same 17
